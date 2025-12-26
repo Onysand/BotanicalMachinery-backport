@@ -4,12 +4,13 @@ import de.melanx.botanicalmachinery.blocks.screens.*;
 import de.melanx.botanicalmachinery.blocks.tesr.*;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.config.ServerConfig;
-import de.melanx.botanicalmachinery.core.ModGroup;
+import de.melanx.botanicalmachinery.core.BotanicalMachineryTab;
 import de.melanx.botanicalmachinery.core.Registration;
 import de.melanx.botanicalmachinery.network.BotanicalMachineryNetwork;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderTypeLookup;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemGroup;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -23,11 +24,11 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(BotanicalMachinery.MODID)
+@Mod(modid = BotanicalMachinery.MODID)
 public class BotanicalMachinery {
 
     public static final String MODID = "botanicalmachinery";
-    public static final ItemGroup itemGroup = new ModGroup(MODID);
+    public static final CreativeTabs creativeTab = new BotanicalMachineryTab(MODID);
     public static final Logger LOGGER = LogManager.getLogger(MODID);
     public final BotanicalMachinery instance;
 
