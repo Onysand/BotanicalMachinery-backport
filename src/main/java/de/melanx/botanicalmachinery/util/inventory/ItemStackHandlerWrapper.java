@@ -1,7 +1,6 @@
 package de.melanx.botanicalmachinery.util.inventory;
 
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandlerModifiable;
 
 import javax.annotation.Nonnull;
@@ -68,19 +67,19 @@ public class ItemStackHandlerWrapper implements IItemHandlerModifiable {
         return this.canInsert == null || this.canInsert.apply(slot, stack);
     }
 
-    public static LazyOptional<IItemHandlerModifiable> create(IItemHandlerModifiable inv) {
-        return LazyOptional.of(() -> new ItemStackHandlerWrapper(inv, null, null));
+    public static IItemHandlerModifiable create(IItemHandlerModifiable inv) {
+        return new ItemStackHandlerWrapper(inv, null, null);
     }
 
-    public static LazyOptional<IItemHandlerModifiable> create(IItemHandlerModifiable inv, @Nullable Function<Integer, Boolean> canExtract, @Nullable BiFunction<Integer, ItemStack, Boolean> canInsert) {
-        return LazyOptional.of(() -> new ItemStackHandlerWrapper(inv, canExtract, canInsert));
+    public static IItemHandlerModifiable create(IItemHandlerModifiable inv, @Nullable Function<Integer, Boolean> canExtract, @Nullable BiFunction<Integer, ItemStack, Boolean> canInsert) {
+        return new ItemStackHandlerWrapper(inv, canExtract, canInsert);
     }
 
-    public static LazyOptional<IItemHandlerModifiable> createLazy(Supplier<IItemHandlerModifiable> inv) {
-        return LazyOptional.of(() -> new ItemStackHandlerWrapper(inv.get(), null, null));
+    public static IItemHandlerModifiable createFromSup(Supplier<IItemHandlerModifiable> inv) {
+        return new ItemStackHandlerWrapper(inv.get(), null, null);
     }
 
-    public static LazyOptional<IItemHandlerModifiable> createLazy(Supplier<IItemHandlerModifiable> inv, @Nullable Function<Integer, Boolean> canExtract, @Nullable BiFunction<Integer, ItemStack, Boolean> canInsert) {
-        return LazyOptional.of(() -> new ItemStackHandlerWrapper(inv.get(), canExtract, canInsert));
+    public static IItemHandlerModifiable createFromSup(Supplier<IItemHandlerModifiable> inv, @Nullable Function<Integer, Boolean> canExtract, @Nullable BiFunction<Integer, ItemStack, Boolean> canInsert) {
+        return new ItemStackHandlerWrapper(inv.get(), canExtract, canInsert);
     }
 }

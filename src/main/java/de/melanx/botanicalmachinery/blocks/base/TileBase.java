@@ -1,24 +1,22 @@
 package de.melanx.botanicalmachinery.blocks.base;
 
 import com.google.common.base.Predicates;
-import com.mojang.blaze3d.systems.RenderSystem;
-import de.melanx.botanicalmachinery.blocks.BlockManaBattery;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
-import net.minecraft.item.DyeColor;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import org.lwjgl.opengl.GL11;
@@ -35,7 +33,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.function.Supplier;
 
-public abstract class TileBase extends TileMod implements IManaPool, IManaMachineTile, IKeyLocked, ISparkAttachable, IThrottledPacket, ITickableTileEntity {
+public abstract class TileBase extends TileMod implements IManaPool, IManaMachineTile, IKeyLocked, ISparkAttachable, IThrottledPacket, ITickable {
 
     public int mana;
     private final int manaCap;
@@ -44,10 +42,10 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
 
     public boolean sendPacket = false;
 
-    private final LazyOptional<IItemHandlerModifiable> handler = this.createHandler(this::getInventory);
+    private final IItemHandlerModifiable handler = this.createHandler(this::getInventory);
 
-    public TileBase(TileEntityType<?> tileEntityTypeIn, int manaCap) {
-        super(tileEntityTypeIn);
+    public TileBase(int manaCap) {
+        super();
         this.manaCap = manaCap;
     }
 
@@ -56,8 +54,8 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
      * now. Always use IItemHandlerModifiable.createLazy. You may call the supplier inside the canExtract and canInsert
      * lambda.
      */
-    protected LazyOptional<IItemHandlerModifiable> createHandler(Supplier<IItemHandlerModifiable> inventory) {
-        return ItemStackHandlerWrapper.createLazy(inventory);
+    protected IItemHandlerModifiable createHandler(Supplier<IItemHandlerModifiable> inventory) {
+        return ItemStackHandlerWrapper.createFromSup(inventory);
     }
 
     @Nonnull
@@ -67,47 +65,48 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
 
     @Nonnull
     @Override
-    public <X> LazyOptional<X> getCapability(@Nonnull Capability<X> cap, Direction direction) {
-        if (!this.removed && cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-            return this.handler.cast();
+    public <X> X getCapability(@Nonnull Capability<X> cap, EnumFacing facing) {
+        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+	        //noinspection unchecked
+	        return (X) this.handler;
         }
-        return super.getCapability(cap, direction);
+        return super.getCapability(cap, facing);
     }
 
     @Override
-    public void writePacketNBT(CompoundNBT cmp) {
-        cmp.put(TileTags.INVENTORY, this.getInventory().serializeNBT());
-        cmp.putInt(TileTags.MANA, this.getCurrentMana());
-        cmp.putString(TileTags.INPUT_KEY, this.inputKey);
-        cmp.putString(TileTags.OUTPUT_KEY, this.outputKey);
+    public void writePacketNBT(NBTTagCompound cmp) {
+        cmp.setTag(TileTags.INVENTORY, this.getInventory().serializeNBT());
+        cmp.setInteger(TileTags.MANA, this.getCurrentMana());
+        cmp.setString(TileTags.INPUT_KEY, this.inputKey);
+        cmp.setString(TileTags.OUTPUT_KEY, this.outputKey);
     }
 
     @Override
-    public void readPacketNBT(CompoundNBT cmp) {
-        this.getInventory().deserializeNBT(cmp.getCompound(TileTags.INVENTORY));
-        this.mana = cmp.getInt(TileTags.MANA);
-        if (cmp.contains(TileTags.INPUT_KEY)) this.inputKey = cmp.getString(TileTags.INPUT_KEY);
-        if (cmp.contains(TileTags.OUTPUT_KEY)) this.outputKey = cmp.getString(TileTags.OUTPUT_KEY);
+    public void readPacketNBT(NBTTagCompound cmp) {
+        this.getInventory().deserializeNBT(cmp.getCompoundTag(TileTags.INVENTORY));
+        this.mana = cmp.getInteger(TileTags.MANA);
+        if (cmp.hasKey(TileTags.INPUT_KEY)) this.inputKey = cmp.getString(TileTags.INPUT_KEY);
+        if (cmp.hasKey(TileTags.OUTPUT_KEY)) this.outputKey = cmp.getString(TileTags.OUTPUT_KEY);
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @SideOnly(Side.CLIENT)
     public void renderHUD(Minecraft mc) {
-        ItemStack block = new ItemStack(this.getBlockState().getBlock());
-        String name = block.getDisplayName().getString();
+        ItemStack block = new ItemStack(this.getWorld().getBlockState(this.pos).getBlock());
+        String name = block.getDisplayName();
         int color = 0x4444FF;
-        HUDHandler.drawSimpleManaHUD(color, this.getCurrentMana(), this.getManaCap(), name);
+        HUDHandler.drawSimpleManaHUD(color, this.getCurrentMana(), this.getManaCap(), name, new ScaledResolution(mc));
+        
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        mc.getTextureManager().bindTexture(HUDHandler.manaBar);
 
-        mc.textureManager.bindTexture(HUDHandler.manaBar);
-
-        RenderSystem.disableLighting();
-        RenderSystem.disableBlend();
+        GlStateManager.disableLighting();
+        GlStateManager.disableBlend();
     }
 
     @Override
-    public void tick() {
+    public void update() {
         if (this.world != null) {
             if (this.sendPacket) {
                 VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
@@ -167,7 +166,7 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
     }
 
     @Override
-    public void receiveMana(int i) {
+    public void recieveMana(int i) {
         int old = this.getCurrentMana();
         this.mana = Math.max(0, Math.min(this.getCurrentMana() + i, this.getManaCap()));
         if (old != this.getCurrentMana()) {
@@ -177,7 +176,7 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
     }
 
     @Override
-    public boolean canReceiveManaFromBursts() {
+    public boolean canRecieveManaFromBursts() {
         return true;
     }
 
@@ -197,12 +196,7 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
     }
 
     @Override
-    public DyeColor getColor() {
+    public EnumDyeColor getColor() {
         return null;
-    }
-
-    @Override
-    public void setColor(DyeColor dyeColor) {
-        // unused
     }
 }
