@@ -4,11 +4,20 @@ import net.minecraftforge.gradle.common.util.RunConfig
 buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
         mavenCentral()
+        maven {
+            // location of the maven that hosts JEI files
+            name = "Progwml6 maven"
+            url = "https://dvs1.progwml6.com/files/maven/"
+        }
+        maven {
+            // location of a maven mirror for JEI files, as a fallback
+            name = "ModMaven"
+            url = "https://modmaven.dev"
+        }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.+', changing: true
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
@@ -25,7 +34,7 @@ archivesBaseName = "${modid}-${mc_version}"
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 minecraft {
-    mappings("snapshot", mappings_version)
+    mappings("stable", mappings_version)
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     createRunConfig("client")
@@ -67,13 +76,13 @@ jar {
 jar.finalizedBy('reobfJar')
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
+    archiveClassifier.set('sources')
     from sourceSets.main.allSource
 }
 
 task deobfJar(type: Jar) {
     from sourceSets.main.output
-    classifier 'deobf'
+    archiveClassifier.set('deobf')
 }
 
 artifacts {
@@ -117,18 +126,13 @@ repositories {
         name = "botania"
         url = "https://maven.blamejared.com/"
     }
-    maven {
-        name = "curios"
-        url = "https://maven.theillusivec4.top/"
-    }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
 
-    compile fg.deobf("vazkii.botania:Botania:${botania_version}")
-    runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}")
-    compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api")
-    runtimeOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-${mc_version}-${curios_version}")
-    compile fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
+    implementation fg.deobf("vazkii.botania:Botania:${botania_version}")
+    runtimeOnly fg.deobf("mezz.jei:jei_${mc_version}:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei_${mc_version}:${jei_version}:api")
+    implementation fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
 }
