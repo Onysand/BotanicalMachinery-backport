@@ -4,40 +4,39 @@ import de.melanx.botanicalmachinery.blocks.base.IWorkingTile;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.config.ServerConfig;
-import de.melanx.botanicalmachinery.core.Registration;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.helper.RecipeHelper;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.brewing.BrewingRecipe;
+import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.brew.IBrewContainer;
 import vazkii.botania.api.brew.IBrewItem;
-import vazkii.botania.api.recipe.IBrewRecipe;
-import vazkii.botania.client.fx.WispParticleData;
-import vazkii.botania.common.crafting.ModRecipeTypes;
+import vazkii.botania.api.recipe.RecipeBrew;
+import vazkii.botania.common.Botania;
 import vazkii.botania.common.item.ModItems;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.IntStream;
 
 public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
 
     public static final int MAX_MANA_PER_TICK = 50;
 
-    public static final List<Item> BREW_CONTAINER = Arrays.asList(ModItems.vial.asItem(), ModItems.flask.asItem(), ModItems.incenseStick.asItem(), ModItems.bloodPendant.asItem());
+    public static final List<Item> BREW_CONTAINER = Arrays.asList(ModItems.vial, ModItems.brewFlask, ModItems.incenseStick, ModItems.bloodPendant);
 
     private final BaseItemStackHandler inventory = new BaseItemStackHandler(8, slot -> {
         this.update = true;
         this.sendPacket = true;
     }, this::isValidStack);
-    private IBrewRecipe recipe = null;
+    private RecipeBrew recipe = null;
     private boolean initDone;
     private int progress;
     private int maxProgress = -1;
@@ -45,7 +44,7 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
     private ItemStack currentOutput = ItemStack.EMPTY;
 
     public TileMechanicalBrewery() {
-        super(Registration.TILE_MECHANICAL_BREWERY.get(), ServerConfig.capacityBrewery.get());
+        super(ServerConfig.capacityBrewery);
         this.inventory.setInputSlots(IntStream.range(0, 7).toArray());
         this.inventory.setOutputSlots(7);
     }
@@ -59,8 +58,11 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
     @Override
     public boolean isValidStack(int slot, ItemStack stack) {
         if (slot == 0)
-            return stack.getTag() != null ? !stack.getTag().contains("brewKey") : BREW_CONTAINER.contains(stack.getItem());
-        return (Arrays.stream(this.inventory.getInputSlots()).noneMatch(x -> x == slot)) || RecipeHelper.isItemValid(this.world, ModRecipeTypes.BREW_TYPE, stack);
+            return stack.getTagCompound() != null ? !stack.getTagCompound().hasKey("brewKey") : BREW_CONTAINER.contains(stack.getItem());
+        for (RecipeBrew recipe : BotaniaAPI.brewRecipes)
+            return recipe.getInputs().stream().anyMatch(input -> RecipeHelper.isInputMatch(input, stack));
+        
+        return (Arrays.stream(this.inventory.getInputSlots()).noneMatch(x -> x == slot));
     }
 
     private void updateRecipe() {
@@ -69,22 +71,17 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
                 this.recipe = null;
                 return;
             }
-            List<ItemStack> stacks = new ArrayList<>(this.inventory.getStacks());
-            RecipeHelper.removeFromList(stacks, new int[]{0, 7});
-            Map<Item, Integer> items = RecipeHelper.getInvItems(stacks);
 
-            for (IRecipe<?> recipe : this.world.getRecipeManager().getRecipes()) {
-                if (recipe instanceof IBrewRecipe) {
-                    if (RecipeHelper.checkIngredients(stacks, items, recipe)) {
-                        this.recipe = (IBrewRecipe) recipe;
-                        if (this.inventory.getStackInSlot(0).isEmpty() || !(this.inventory.getStackInSlot(0).getItem() instanceof IBrewContainer)) {
-                            this.currentOutput = ItemStack.EMPTY;
-                        } else {
-                            this.currentOutput = ((IBrewContainer) this.inventory.getStackInSlot(0).getItem()).getItemForBrew(this.recipe.getBrew(), this.inventory.getStackInSlot(0).copy());
-                        }
-                        this.sendPacket = true;
-                        return;
+            for (RecipeBrew recipe : BotaniaAPI.brewRecipes) {
+                if (recipe.matches(this.inventory)) {
+                    this.recipe = recipe;
+                    if (this.inventory.getStackInSlot(0).isEmpty() || !(this.inventory.getStackInSlot(0).getItem() instanceof IBrewContainer)) {
+                        this.currentOutput = ItemStack.EMPTY;
+                    } else {
+                        this.currentOutput = ((IBrewContainer) this.inventory.getStackInSlot(0).getItem()).getItemForBrew(this.recipe.getBrew(), this.inventory.getStackInSlot(0).copy());
                     }
+                    this.sendPacket = true;
+                    return;
                 }
             }
         }
@@ -93,30 +90,30 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
     }
 
     @Override
-    public void writePacketNBT(CompoundNBT cmp) {
+    public void writePacketNBT(NBTTagCompound cmp) {
         super.writePacketNBT(cmp);
-        cmp.putInt(TileTags.PROGRESS, this.progress);
-        cmp.putInt(TileTags.MAX_PROGRESS, this.maxProgress);
-        cmp.put(TileTags.CURRENT_OUTPUT, this.currentOutput.serializeNBT());
+        cmp.setInteger(TileTags.PROGRESS, this.progress);
+        cmp.setInteger(TileTags.MAX_PROGRESS, this.maxProgress);
+        cmp.setTag(TileTags.CURRENT_OUTPUT, this.currentOutput.serializeNBT());
     }
 
     @Override
-    public void readPacketNBT(CompoundNBT cmp) {
+    public void readPacketNBT(NBTTagCompound cmp) {
         super.readPacketNBT(cmp);
-        this.progress = cmp.getInt(TileTags.PROGRESS);
-        this.maxProgress = cmp.getInt(TileTags.MAX_PROGRESS);
-        this.currentOutput = ItemStack.read(cmp.getCompound(TileTags.CURRENT_OUTPUT));
+        this.progress = cmp.getInteger(TileTags.PROGRESS);
+        this.maxProgress = cmp.getInteger(TileTags.MAX_PROGRESS);
+        this.currentOutput = new ItemStack(cmp.getCompoundTag(TileTags.CURRENT_OUTPUT));
     }
 
     @Override
-    public void tick() {
-        super.tick();
+    public void update() {
+        super.update();
         if (!this.initDone) {
             this.update = true;
             this.initDone = true;
         }
         if (this.world != null && !this.world.isRemote) {
-            this.updateRecipe(); // todo remove
+            this.updateRecipe();
             boolean done = false;
             if (this.recipe != null) {
                 ItemStack output = this.recipe.getOutput(this.inventory.getStackInSlot(0)).copy();
@@ -125,7 +122,7 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
                     this.maxProgress = this.getManaCost();
                     int manaTransfer = Math.min(this.mana, Math.min(MAX_MANA_PER_TICK, this.getMaxProgress() - this.progress));
                     this.progress += manaTransfer;
-                    this.receiveMana(-manaTransfer);
+                    this.recieveMana(-manaTransfer);
                     if (this.progress >= this.getMaxProgress()) {
                         if (currentOutput.isEmpty()) {
                             this.inventory.setStackInSlot(7, output);
@@ -133,9 +130,9 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
                             currentOutput.setCount(currentOutput.getCount() + output.getCount());
                         }
                         this.inventory.getStackInSlot(0).shrink(1);
-                        for (Ingredient ingredient : this.recipe.getIngredients()) {
+                        for (Object input : this.recipe.getInputs()) {
                             for (ItemStack stack : this.inventory.getStacks()) {
-                                if (ingredient.test(stack)) {
+                                if (RecipeHelper.isInputMatch(input, stack)) {
                                     stack.shrink(1);
                                     break;
                                 }
@@ -159,7 +156,7 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
                 this.markDispatchable();
             }
         } else if (this.world != null) {
-            if (this.progress > 0 && ClientConfig.everything.get() && ClientConfig.brewery.get()) {
+            if (this.progress > 0 && ClientConfig.everything && ClientConfig.brewery) {
                 if (this.currentOutput.getItem() instanceof IBrewItem && this.world.rand.nextFloat() < 0.5f) {
                     int segments = 3;
                     for (int i = 1; i <= 6; i++) {
@@ -172,10 +169,9 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
                         float red = (targetColor >> 16 & 255) / 255f;
                         float green = (targetColor >> 8 & 255) / 255f;
                         float blue = (targetColor & 255) / 255f;
-                        WispParticleData data = WispParticleData.wisp(0.125f, red, green, blue, 0.5f);
                         double xPos = this.pos.getX() + 0.25 + (this.world.rand.nextDouble() / 2);
                         double zPos = this.pos.getZ() + 0.25 + (this.world.rand.nextDouble() / 2);
-                        this.world.addParticle(data, xPos, this.pos.getY() + 0.35, zPos, 0, 0.01 + (this.world.rand.nextDouble() / 18), 0);
+                        Botania.proxy.wispFX(xPos, this.pos.getY() + 0.35, zPos, red, green, blue, 0.5f, 0, (float) (0.01 + (this.world.rand.nextDouble() / 18)), 0);
                     }
                 }
             }
@@ -196,7 +192,7 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
     }
 
     public int getMaxManaPerTick() {
-        return MAX_MANA_PER_TICK / ServerConfig.multiplierBrewery.get();
+        return MAX_MANA_PER_TICK / ServerConfig.multiplierBrewery;
     }
 
     public int getManaCost() {

@@ -4,15 +4,15 @@ import de.melanx.botanicalmachinery.blocks.base.IWorkingTile;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.config.ServerConfig;
-import de.melanx.botanicalmachinery.core.Registration;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import vazkii.botania.client.fx.WispParticleData;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.oredict.OreDictionary;
+import vazkii.botania.common.Botania;
 import vazkii.botania.common.block.tile.mana.TilePool;
-import vazkii.botania.common.item.ModItems;
-import vazkii.botania.common.lib.ModTags;
+import vazkii.botania.common.lib.LibOreDict;
 
 import javax.annotation.Nonnull;
 
@@ -26,7 +26,7 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
     private boolean recipe;
 
     public TileIndustrialAgglomerationFactory() {
-        super(Registration.TILE_INDUSTRIAL_AGGLOMERATION_FACTORY.get(), ServerConfig.capacityAgglomerationFactory.get());
+        super(ServerConfig.capacityAgglomerationFactory);
         this.inventory.setOutputSlots(3);
         this.inventory.setSlotValidator(this::isValidStack);
     }
@@ -39,26 +39,35 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
 
     @Override
     public boolean isValidStack(int slot, ItemStack stack) {
-        return (slot != 0 || ModTags.Items.INGOTS_MANASTEEL.contains(stack.getItem())) &&
-                (slot != 1 || ModTags.Items.GEMS_MANA_DIAMOND.contains(stack.getItem())) &&
-                (slot != 2 || ModItems.manaPearl == stack.getItem());
+        if (stack.isEmpty()) return false;
+        
+        switch (slot) {
+            case 0: // ManaSteel Ingot
+                return OreDictionary.getOres(LibOreDict.MANA_STEEL).contains(stack);
+            case 1: // Mana Diamond
+                return OreDictionary.getOres(LibOreDict.MANA_DIAMOND).contains(stack);
+            case 2: // Mana Pearl
+                return OreDictionary.getOres(LibOreDict.MANA_PEARL).contains(stack);
+            default:
+                return false;
+        }
     }
 
     @Override
-    public void writePacketNBT(CompoundNBT cmp) {
+    public void writePacketNBT(NBTTagCompound cmp) {
         super.writePacketNBT(cmp);
-        cmp.putInt(TileTags.PROGRESS, this.progress);
+        cmp.setInteger(TileTags.PROGRESS, this.progress);
     }
 
     @Override
-    public void readPacketNBT(CompoundNBT cmp) {
+    public void readPacketNBT(NBTTagCompound cmp) {
         super.readPacketNBT(cmp);
-        this.progress = cmp.getInt(TileTags.PROGRESS);
+        this.progress = cmp.getInteger(TileTags.PROGRESS);
     }
 
     @Override
-    public void tick() {
-        super.tick();
+    public void update() {
+        super.update();
         if (this.world != null && !this.world.isRemote) {
             ItemStack manasteel = this.inventory.getStackInSlot(0);
             ItemStack manadiamond = this.inventory.getStackInSlot(1);
@@ -69,12 +78,13 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
                 this.recipe = true;
                 int manaTransfer = Math.min(this.mana, Math.min(this.getMaxManaPerTick(), this.getMaxProgress() - this.progress));
                 this.progress += manaTransfer;
-                this.receiveMana(-manaTransfer);
+                this.recieveMana(-manaTransfer);
                 if (this.progress >= this.getMaxProgress()) {
                     manasteel.shrink(1);
                     manadiamond.shrink(1);
                     manapearl.shrink(1);
-                    this.inventory.getUnrestricted().insertItem(3, new ItemStack(ModItems.terrasteel), false);
+                    ItemStack terraSteel = OreDictionary.getOres(LibOreDict.TERRA_STEEL).get(0).copy();
+                    this.inventory.getUnrestricted().insertItem(3, terraSteel, false);
                     this.recipe = false;
                 }
                 this.markDirty();
@@ -86,7 +96,7 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
             } else if (this.recipe) {
                 this.recipe = false;
             }
-        } else if (this.world != null && ClientConfig.everything.get() && ClientConfig.agglomerationFactory.get()) {
+        } else if (this.world != null && ClientConfig.everything && ClientConfig.agglomerationFactory) {
             if (this.progress > 0) {
                 double time = this.progress / (double) this.getMaxProgress();
                 if (time < 0.8) {
@@ -96,11 +106,14 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
                     double x2 = this.pos.getX() + 0.8 - (0.3 * time);
                     double z1 = this.pos.getZ() + 0.2 + (0.3 * time);
                     double z2 = this.pos.getZ() + 0.8 - (0.3 * time);
-                    WispParticleData data = WispParticleData.wisp(0.1f, 0, (float) time, (float) (1 - time), 1);
-                    this.world.addParticle(data, x1, y, z1, 0, 0, 0);
-                    this.world.addParticle(data, x1, y, z2, 0, 0, 0);
-                    this.world.addParticle(data, x2, y, z1, 0, 0, 0);
-                    this.world.addParticle(data, x2, y, z2, 0, 0, 0);
+                    float size = 0.1f + (0.05f * (float) time);
+                    float r = 0.0f;
+                    float g = (float) time;
+                    float b = (float) (1.0 - time);
+                    Botania.proxy.wispFX(x1, y, z1, r, g, b, size, 0, 0, 0);
+                    Botania.proxy.wispFX(x1, y, z2, r, g, b, size, 0, 0, 0);
+                    Botania.proxy.wispFX(x2, y, z1, r, g, b, size, 0, 0, 0);
+                    Botania.proxy.wispFX(x2, y, z2, r, g, b, size, 0, 0, 0);
                 }
             }
         }
@@ -115,6 +128,6 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
     }
 
     public int getMaxManaPerTick() {
-        return MAX_MANA_PER_TICK / ServerConfig.multiplierAgglomerationFactory.get();
+        return MAX_MANA_PER_TICK / ServerConfig.multiplierAgglomerationFactory;
     }
 }

@@ -2,38 +2,32 @@ package de.melanx.botanicalmachinery.blocks.tiles;
 
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.config.ServerConfig;
-import de.melanx.botanicalmachinery.core.Registration;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.helper.RecipeHelper;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
-import net.minecraft.fluid.Fluids;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.util.Direction;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ITickable;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.oredict.OreDictionary;
+import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.internal.VanillaPacketDispatcher;
-import vazkii.botania.api.recipe.ICustomApothecaryColor;
-import vazkii.botania.api.recipe.IPetalRecipe;
-import vazkii.botania.client.fx.SparkleParticleData;
+import vazkii.botania.api.recipe.RecipePetals;
+import vazkii.botania.common.Botania;
 import vazkii.botania.common.block.tile.TileMod;
 import vazkii.botania.common.core.handler.ModSounds;
-import vazkii.botania.common.crafting.ModRecipeTypes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,22 +35,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-public class TileMechanicalApothecary extends TileMod implements ITickableTileEntity {
+public class TileMechanicalApothecary extends TileMod implements ITickable {
 
     public static final int WORKING_DURATION = 20;
     public static final int FLUID_CAPACITY = 8000;
 
-    private final LazyOptional<IItemHandlerModifiable> handler = ItemStackHandlerWrapper.createFromSup(this::getInventory);
+    private final IItemHandlerModifiable handler = ItemStackHandlerWrapper.createFromSup(this::getInventory);
     private final BaseItemStackHandler inventory = new BaseItemStackHandler(21, slot -> {
         this.update = true;
         this.sendPacket = true;
     }, this::isValidStack);
-    private final ModdedFluidTank fluidInventory = new ModdedFluidTank(FLUID_CAPACITY, fluidStack -> fluidStack.getFluid().isEquivalentTo(Fluids.WATER));
-    private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> this.fluidInventory);
-    private IPetalRecipe recipe = null;
+    private final ModdedFluidTank fluidInventory = new ModdedFluidTank(new FluidStack(FluidRegistry.WATER, 0), FLUID_CAPACITY);
+    private final IFluidHandler fluidHandler = this.fluidInventory;
+    private RecipePetals recipe = null;
     private boolean initDone;
     private int progress;
     private boolean update;
@@ -64,7 +57,7 @@ public class TileMechanicalApothecary extends TileMod implements ITickableTileEn
     private ItemStack currentOutput = ItemStack.EMPTY;
 
     public TileMechanicalApothecary() {
-        super(Registration.TILE_MECHANICAL_APOTHECARY.get());
+        super();
         this.inventory.setInputSlots(IntStream.range(1, 17).toArray());
         this.inventory.setOutputSlots(IntStream.range(17, 21).toArray());
     }
@@ -80,9 +73,12 @@ public class TileMechanicalApothecary extends TileMod implements ITickableTileEn
     }
 
     public boolean isValidStack(int slot, ItemStack stack) {
-        if (slot == 0) return Tags.Items.SEEDS.contains(stack.getItem());
-        else if (Arrays.stream(this.inventory.getInputSlots()).anyMatch(x -> x == slot))
-            return RecipeHelper.isItemValid(this.world, ModRecipeTypes.PETAL_TYPE, stack);
+        if (slot == 0) return OreDictionary.getOres("listAllseed").contains(stack);
+        else if (Arrays.stream(this.inventory.getInputSlots()).anyMatch(x -> x == slot)) {
+            for (RecipePetals r : BotaniaAPI.petalRecipes) {
+                return r.getInputs().stream().anyMatch(input -> RecipeHelper.isInputMatch(input, stack));
+            }
+        }
         return true;
     }
 
@@ -92,23 +88,20 @@ public class TileMechanicalApothecary extends TileMod implements ITickableTileEn
             RecipeHelper.removeFromList(stacks, IntStream.range(17, stacks.size() - 1).toArray(), new int[]{0});
             Map<Item, Integer> items = RecipeHelper.getInvItems(stacks);
 
-            for (IRecipe<?> recipe : this.world.getRecipeManager().getRecipes()) {
-                if (recipe instanceof IPetalRecipe) {
-                    if (RecipeHelper.checkIngredients(stacks, items, recipe) && !this.inventory.getStackInSlot(0).isEmpty() && this.fluidInventory.getFluidAmount() >= 1000) {
-                        this.recipe = (IPetalRecipe) recipe;
-                        this.currentOutput = this.recipe.getRecipeOutput().copy();
-                        this.sendPacket = true;
-                        return;
-                    }
-                }
-            }
+            for (RecipePetals recipe : BotaniaAPI.petalRecipes) {
+                if (recipe.matches(this.inventory) && !this.inventory.getStackInSlot(0).isEmpty() && this.fluidInventory.getFluidAmount() >= 1000) {
+                    this.recipe = recipe;
+                    this.currentOutput = this.recipe.getOutput().copy();
+                    this.sendPacket = true;
+                    return;
+                }}
         }
         this.currentOutput = ItemStack.EMPTY;
         this.recipe = null;
     }
 
     @Override
-    public void tick() {
+    public void update() {
         if (this.sendPacket) {
             VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
             this.sendPacket = false;
@@ -123,17 +116,17 @@ public class TileMechanicalApothecary extends TileMod implements ITickableTileEn
                 if (this.progress <= getRecipeDuration()) {
                     ++this.progress;
                     if (this.progress >= getRecipeDuration()) {
-                        ItemStack output = this.recipe.getRecipeOutput().copy();
-                        for (Ingredient ingredient : this.recipe.getIngredients()) {
+                        ItemStack output = this.recipe.getOutput().copy();
+                        for (Object input : this.recipe.getInputs()) {
                             for (ItemStack stack : this.inventory.getStacks()) {
-                                if (ingredient.test(stack)) {
+                                if (RecipeHelper.isInputMatch(input, stack)) {
                                     stack.shrink(1);
                                     break;
                                 }
                             }
                         }
                         FluidStack fluid = this.fluidInventory.getFluid();
-                        fluid.shrink(1000);
+                        fluid.amount -= 1000;
                         this.fluidInventory.setFluid(fluid);
                         this.inventory.getStackInSlot(0).shrink(1);
                         this.putIntoOutput(output);
@@ -153,12 +146,11 @@ public class TileMechanicalApothecary extends TileMod implements ITickableTileEn
                 this.updateRecipe();
                 this.update = false;
             }
-        } else if (this.world != null && ClientConfig.everything.get() && ClientConfig.apothecary.get()) {
+        } else if (this.world != null && ClientConfig.everything && ClientConfig.apothecary) {
             if (this.fluidInventory.getFluidAmount() > 0) {
                 if (this.progress > getRecipeDuration() - 5) {
                     for (int i = 0; i < 5; i++) {
-                        SparkleParticleData data = SparkleParticleData.sparkle(this.world.rand.nextFloat(), this.world.rand.nextFloat(), this.world.rand.nextFloat(), this.world.rand.nextFloat(), 10);
-                        this.world.addParticle(data, this.pos.getX() + 0.3 + (this.world.rand.nextDouble() * 0.4), this.pos.getY() + 0.6, this.pos.getZ() + 0.3 + (this.world.rand.nextDouble() * 0.4), 0.0D, 0.0D, 0.0D);
+                        Botania.proxy.sparkleFX(this.pos.getX() + 0.5, this.pos.getY() + 0.5, this.pos.getZ() + 0.5, this.world.rand.nextFloat(), this.world.rand.nextFloat(), this.world.rand.nextFloat(), this.world.rand.nextFloat(), 10);
                     }
                     this.world.playSound(this.pos.getX() + 0.5, this.pos.getY() + 0.5, this.pos.getZ() + 0.5, ModSounds.altarCraft, SoundCategory.BLOCKS, 1.0F, 1.0F, false);
                 } else {
@@ -169,15 +161,14 @@ public class TileMechanicalApothecary extends TileMod implements ITickableTileEn
                         }
 
                         if (this.world.rand.nextFloat() >= 0.97f) {
-                            int color = stack.getItem() instanceof ICustomApothecaryColor ? ((ICustomApothecaryColor) stack.getItem()).getParticleColor(stack) : 0x888888;
+                            int color = 0x888888;
                             float red = (float) (color >> 16 & 255) / 255f;
                             float green = (float) (color >> 8 & 255) / 255f;
                             float blue = (float) (color & 255) / 255f;
                             if (Math.random() >= 0.75) {
                                 this.world.playSound(null, this.pos, SoundEvents.ENTITY_GENERIC_SPLASH, SoundCategory.BLOCKS, 0.1F, 10.0F);
                             }
-                            SparkleParticleData data = SparkleParticleData.sparkle(this.world.rand.nextFloat(), red, green, blue, 10);
-                            this.world.addParticle(data, this.pos.getX() + 0.3 + (this.world.rand.nextDouble() * 0.4), this.pos.getY() + 0.6, this.pos.getZ() + 0.3 + (this.world.rand.nextDouble() * 0.4), 0.0D, 0.0D, 0.0D);
+                            Botania.proxy.sparkleFX(this.pos.getX() + 0.3 + (this.world.rand.nextDouble() * 0.4), this.pos.getY() + 0.6, this.pos.getZ() + 0.3 + (this.world.rand.nextDouble() * 0.4), red, green, blue, this.world.rand.nextFloat(), 10);
                         }
                     }
                 }
@@ -209,34 +200,34 @@ public class TileMechanicalApothecary extends TileMod implements ITickableTileEn
     }
 
     public static int getRecipeDuration() {
-        return WORKING_DURATION * ServerConfig.multiplierApothecary.get();
+        return WORKING_DURATION * ServerConfig.multiplierApothecary;
     }
 
     @Override
-    public void writePacketNBT(CompoundNBT cmp) {
-        cmp.put(TileTags.INVENTORY, this.getInventory().serializeNBT());
-        final CompoundNBT tankTag = new CompoundNBT();
+    public void writePacketNBT(NBTTagCompound cmp) {
+        cmp.setTag(TileTags.INVENTORY, this.getInventory().serializeNBT());
+        final NBTTagCompound tankTag = new NBTTagCompound();
         this.getFluidInventory().getFluid().writeToNBT(tankTag);
-        cmp.put(TileTags.FLUID, tankTag);
-        cmp.putInt(TileTags.PROGRESS, this.progress);
-        cmp.put(TileTags.CURRENT_OUTPUT, this.currentOutput.serializeNBT());
+        cmp.setTag(TileTags.FLUID, tankTag);
+        cmp.setInteger(TileTags.PROGRESS, this.progress);
+        cmp.setTag(TileTags.CURRENT_OUTPUT, this.currentOutput.serializeNBT());
     }
 
     @Override
-    public void readPacketNBT(CompoundNBT cmp) {
-        this.getInventory().deserializeNBT(cmp.getCompound(TileTags.INVENTORY));
-        this.fluidInventory.setFluid(FluidStack.loadFluidStackFromNBT(cmp.getCompound(TileTags.FLUID)));
-        this.progress = cmp.getInt(TileTags.PROGRESS);
-        this.currentOutput = ItemStack.read(cmp.getCompound(TileTags.CURRENT_OUTPUT));
+    public void readPacketNBT(NBTTagCompound cmp) {
+        this.getInventory().deserializeNBT(cmp.getCompoundTag(TileTags.INVENTORY));
+        this.fluidInventory.setFluid(FluidStack.loadFluidStackFromNBT(cmp.getCompoundTag(TileTags.FLUID)));
+        this.progress = cmp.getInteger(TileTags.PROGRESS);
+        this.currentOutput = new ItemStack(cmp.getCompoundTag(TileTags.CURRENT_OUTPUT));
     }
-
+    
     @Nonnull
     @Override
-    public <X> LazyOptional<X> getCapability(@Nonnull Capability<X> cap, @Nullable Direction side) {
-        if (!this.removed && (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)) {
-            return this.handler.cast();
+    public <X> X getCapability(@Nonnull Capability<X> cap, @Nullable EnumFacing side) {
+        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+            return (X) this.handler;
         } else if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            return this.fluidHandler.cast();
+            return (X) this.fluidHandler;
         }
         return super.getCapability(cap, side);
     }
@@ -244,10 +235,10 @@ public class TileMechanicalApothecary extends TileMod implements ITickableTileEn
     public ItemStack getCurrentOutput() {
         return this.currentOutput;
     }
-
+    
     private class ModdedFluidTank extends FluidTank {
-        public ModdedFluidTank(int capacity, Predicate<FluidStack> validator) {
-            super(capacity, validator);
+        public ModdedFluidTank(FluidStack fluidStack, int capacity) {
+            super(fluidStack, capacity);
         }
 
         @Override
@@ -255,17 +246,20 @@ public class TileMechanicalApothecary extends TileMod implements ITickableTileEn
             TileMechanicalApothecary.this.sendPacket = true;
             TileMechanicalApothecary.this.update = true;
         }
-
-        @Nonnull
+        
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            return FluidStack.EMPTY;
+        public boolean canFillFluidType(FluidStack fluid) {
+            return fluid.getFluid() == FluidRegistry.WATER;
         }
-
-        @Nonnull
+        
         @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            return FluidStack.EMPTY;
+        public FluidStack drain(FluidStack resource, boolean doDrain) {
+            return null;
+        }
+        
+        @Override
+        public FluidStack drain(int maxDrain, boolean doDrain) {
+            return null;
         }
     }
 }

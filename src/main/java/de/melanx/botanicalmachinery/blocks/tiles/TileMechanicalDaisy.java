@@ -5,71 +5,86 @@ import de.melanx.botanicalmachinery.config.ServerConfig;
 import de.melanx.botanicalmachinery.core.Registration;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
+import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.internal.VanillaPacketDispatcher;
+import vazkii.botania.api.recipe.RecipePureDaisy;
+import vazkii.botania.common.Botania;
 import vazkii.botania.common.block.tile.TileMod;
+import vazkii.botania.common.crafting.ModPureDaisyRecipes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TileMechanicalDaisy extends TileMod implements TileEntity, ITickable {
+public class TileMechanicalDaisy extends TileMod implements ITickable {
 
     private int ticksToNextUpdate = 5;
     // Negative value = recipe completed
     private int[] workingTicks = new int[8];
     private final InventoryHandler inventory = new InventoryHandler();
 
-    private final LazyOptional<IItemHandlerModifiable> lazyInventory = ItemStackHandlerWrapper.create(this.inventory);
+    private final IItemHandlerModifiable lazyInventory = ItemStackHandlerWrapper.create(this.inventory);
 
     // The canExtract function makes it so that hoppers can only extract items when the recipe is done.
-    private final LazyOptional<IItemHandlerModifiable> hopperInventory = ItemStackHandlerWrapper.create(this.inventory, slot -> this.workingTicks[slot] < 0, null);
-    private final LazyOptional<IFluidHandler> fluidInventory = LazyOptional.of(() -> this.inventory);
+    private final IItemHandlerModifiable hopperInventory = ItemStackHandlerWrapper.create(this.inventory, slot -> this.workingTicks[slot] < 0, null);
+    private final IFluidHandler fluidInventory = this.inventory;
 
 
     public TileMechanicalDaisy() {
-        super(Registration.TILE_MECHANICAL_DAISY.get());
+        super();
     }
 
     @Override
     public void update() {
         boolean hasSpawnedParticles = false;
         for (int i = 0; i < 8; i++) {
-            IPureDaisyRecipe recipe = this.getRecipe(i);
+            RecipePureDaisy recipe = this.getRecipe(i);
             if (recipe != null) {
                 //noinspection ConstantConditions
                 if (!this.world.isRemote) {
-                    if (this.workingTicks[i] >= recipe.getTime() * ServerConfig.multiplierDaisy.get()) {
-                        BlockState state = recipe.getOutputState();
-                        if (state.getBlock().asItem() != Items.AIR) {
+                    if (this.workingTicks[i] >= recipe.getTime() * ServerConfig.multiplierDaisy) {
+                        IBlockState state = recipe.getOutputState();
+                        if (state.getBlock() != Blocks.AIR) {
                             //noinspection deprecation
                             this.inventory.setStackInSlot(i, state.getBlock().getItem(this.world, this.pos, state));
-                        } else if (state.getFluidState().getFluid().getFluid() != Fluids.EMPTY) {
-                            this.inventory.setStackInSlot(i, new FluidStack(state.getFluidState().getFluid(), 1000));
+                        } else if (FluidRegistry.lookupFluidForBlock(state.getBlock()) != null) {
+                            this.inventory.setStackInSlot(i, new FluidStack(FluidRegistry.lookupFluidForBlock(state.getBlock()), 1000));
                         }
                         this.workingTicks[i] = -1;
                     } else {
                         this.workingTicks[i] += 1;
                     }
-                } else if (!hasSpawnedParticles && ClientConfig.everything.get() && ClientConfig.daisy.get()) {
+                } else if (!hasSpawnedParticles && ClientConfig.everything && ClientConfig.daisy) {
                     hasSpawnedParticles = true;
                     double x = this.pos.getX() + Math.random();
                     double y = this.pos.getY() + Math.random() + 0.25D;
                     double z = this.pos.getZ() + Math.random();
-                    WispParticleData data = WispParticleData.wisp((float) Math.random() / 2.0F, 1.0F, 1.0F, 1.0F);
-                    this.world.addParticle(data, x, y, z, 0.0D, 0.0D, 0.0D);
+                    Botania.proxy.wispFX(x, y, z, 1.0F, 1.0F, 1.0F, (float) Math.random() / 2.0F, 0, 0, 0);
                 }
             } else {
                 if (this.workingTicks[i] < 0 && !this.inventory.getStackInSlot(i).isEmpty()) {
@@ -91,87 +106,82 @@ public class TileMechanicalDaisy extends TileMod implements TileEntity, ITickabl
     }
 
     @Nullable
-    private IPureDaisyRecipe getRecipe(int slot) {
-        BlockState state = this.getState(slot);
-        if (state == null)
-            return null;
+    private RecipePureDaisy getRecipe(int slot) {
+        IBlockState state = getState(slot);
         return this.getRecipe(state);
     }
 
     @Nullable
-    public BlockState getState(int slot) {
-        BlockState state = null;
+    public IBlockState getState(int slot) {
+        IBlockState state = null;
 
         ItemStack stack = this.inventory.getStackInSlot(slot);
         if (!stack.isEmpty()) {
-            if (stack.getItem() instanceof BlockItem) {
-                state = ((BlockItem) stack.getItem()).getBlock().getDefaultState();
+            if (stack.getItem() instanceof ItemBlock) {
+                state = ((ItemBlock) stack.getItem()).getBlock().getDefaultState();
             }
         } else {
-            FluidStack fluid = this.inventory.getFluidInTank(slot);
-            if (!fluid.isEmpty() && fluid.getAmount() >= 1000) {
-                state = fluid.getFluid().getDefaultState().getBlockState();
+            FluidStack fluid = this.inventory.fluids.get(slot);
+            if (fluid != null && fluid.amount >= 1000) {
+                state = fluid.getFluid().getBlock().getDefaultState();
             }
         }
         return state;
     }
 
     @Nullable
-    public BlockState getState(ItemStack stack) {
-        BlockState state = null;
+    public IBlockState getState(ItemStack stack) {
+        IBlockState state = null;
 
         if (!stack.isEmpty()) {
-            if (stack.getItem() instanceof BlockItem) {
-                state = ((BlockItem) stack.getItem()).getBlock().getDefaultState();
+            if (stack.getItem() instanceof ItemBlock) {
+                state = ((ItemBlock) stack.getItem()).getBlock().getDefaultState();
             }
         }
         return state;
     }
 
     @Nullable
-    public IPureDaisyRecipe getRecipe(BlockState state) {
+    public RecipePureDaisy getRecipe(IBlockState state) {
         if (this.world == null)
             return null;
 
-        for (IRecipe<?> genericRecipe : this.world.getRecipeManager().getRecipes(ModRecipeTypes.PURE_DAISY_TYPE).values()) {
-            if (genericRecipe instanceof IPureDaisyRecipe) {
-                IPureDaisyRecipe recipe = (IPureDaisyRecipe) genericRecipe;
-                if (recipe.matches(this.world, this.pos, null, state)) {
-                    return recipe;
-                }
+        for (RecipePureDaisy recipe : BotaniaAPI.pureDaisyRecipes) {
+            if (recipe.matches(this.world, this.pos, null, state)) {
+                return recipe;
             }
         }
         return null;
     }
 
     @Override
-    public void writePacketNBT(CompoundNBT tag) {
-        tag.put(TileTags.INVENTORY, this.inventory.serializeNBT());
-        tag.putIntArray(TileTags.WORKING_TICKS, this.workingTicks);
+    public void writePacketNBT(NBTTagCompound tag) {
+        tag.setTag(TileTags.INVENTORY, this.inventory.serializeNBT());
+        tag.setIntArray(TileTags.WORKING_TICKS, this.workingTicks);
     }
 
     @Override
-    public void readPacketNBT(CompoundNBT tag) {
-        if (tag.contains(TileTags.INVENTORY)) {
-            this.inventory.deserializeNBT(tag.getCompound(TileTags.INVENTORY));
+    public void readPacketNBT(NBTTagCompound tag) {
+        if (tag.hasKey(TileTags.INVENTORY)) {
+            this.inventory.deserializeNBT(tag.getCompoundTag(TileTags.INVENTORY));
         }
-        if (tag.contains(TileTags.WORKING_TICKS)) {
+        if (tag.hasKey(TileTags.WORKING_TICKS)) {
             this.workingTicks = tag.getIntArray(TileTags.WORKING_TICKS);
         }
     }
 
     @Nonnull
     @Override
-    public <X> LazyOptional<X> getCapability(@Nonnull Capability<X> cap, @Nullable Direction side) {
-        if (!this.removed && (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)) {
+    public <X> X getCapability(@Nonnull Capability<X> cap, @Nullable EnumFacing side) {
+        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
 
             // If the side is null (e.g we're in the gui) we return the normal inventory.
             // For world interactions (direction != null) we return the inventory that block slots of not finished recipes.
             //noinspection unchecked
-            return (LazyOptional<X>) (side == null ? this.lazyInventory : this.hopperInventory);
+            return (X) (side == null ? this.lazyInventory : this.hopperInventory);
         } else if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
             //noinspection unchecked
-            return (LazyOptional<X>) this.fluidInventory;
+            return (X) this.fluidInventory;
         }
         return super.getCapability(cap, side);
     }
@@ -187,21 +197,20 @@ public class TileMechanicalDaisy extends TileMod implements TileEntity, ITickabl
         public InventoryHandler() {
             super(8);
             for (int i = 0; i < 8; i++) {
-                this.fluids.add(FluidStack.EMPTY);
+                this.fluids.add(null);
             }
-            //fluids = NonNullList.from(FluidStack.EMPTY, new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000));
         }
 
         @Override
-        public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
+        public void setStackInSlot(int slot, ItemStack stack) {
             if (!stack.isEmpty())
-                this.fluids.set(slot, FluidStack.EMPTY);
+                this.fluids.set(slot, null);
             super.setStackInSlot(slot, stack);
         }
 
-        public void setStackInSlot(int slot, @Nonnull FluidStack stack) {
+        public void setStackInSlot(int slot, FluidStack stack) {
             this.fluids.set(slot, stack);
-            if (!stack.isEmpty())
+            if (stack != null)
                 super.setStackInSlot(slot, ItemStack.EMPTY);
             else
                 this.onContentsChanged(slot); // setStackInSlot calls this as well
@@ -214,19 +223,19 @@ public class TileMechanicalDaisy extends TileMod implements TileEntity, ITickabl
 
         @Nonnull
         @Override
-        public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
-            if (!this.fluids.get(slot).isEmpty()) {
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (this.fluids.get(slot) != null) {
                 // Slot is occupied by a fluid.
                 return stack;
             } else {
                 return super.insertItem(slot, stack, simulate);
             }
         }
-
+        
         @Nonnull
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            if (!this.fluids.get(slot).isEmpty()) {
+            if (this.fluids.get(slot) != null) {
                 // Slot is occupied by a fluid.
                 return ItemStack.EMPTY;
             } else {
@@ -241,50 +250,48 @@ public class TileMechanicalDaisy extends TileMod implements TileEntity, ITickabl
 
         @Override
         public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-            return !stack.isEmpty() && stack.getItem() instanceof BlockItem && TileMechanicalDaisy.this.getRecipe(((BlockItem) stack.getItem()).getBlock().getDefaultState()) != null;
+            return !stack.isEmpty() && stack.getItem() instanceof ItemBlock && TileMechanicalDaisy.this.getRecipe(((ItemBlock) stack.getItem()).getBlock().getDefaultState()) != null;
         }
-
-        @Override
-        public int getTanks() {
-            return 8;
-        }
-
-        @Nonnull
-        @Override
-        public FluidStack getFluidInTank(int tank) {
-            if (!this.getStackInSlot(tank).isEmpty()) {
-                // There's an item in here
-                return FluidStack.EMPTY;
-            } else {
-                return this.fluids.get(tank);
-            }
-        }
-
-        @Override
-        public int getTankCapacity(int tank) {
+        
+        public int getTankCapacity() {
             return 1000;
         }
-
+        
         @Override
-        public boolean isFluidValid(int tank, @Nonnull FluidStack stack) {
-            return !stack.isEmpty() && TileMechanicalDaisy.this.getRecipe(stack.getFluid().getDefaultState().getBlockState()) != null;
+        public IFluidTankProperties[] getTankProperties() {
+            IFluidTankProperties[] props = new IFluidTankProperties[8];
+            for (int i = 0; i < 8; i++) {
+                final int index = i;
+                props[i] = new IFluidTankProperties() {
+                    @Nullable @Override public FluidStack getContents() { return fluids.get(index); }
+                    @Override public int getCapacity() { return getTankCapacity(); }
+                    @Override public boolean canFill() { return getStackInSlot(index).isEmpty(); }
+                    @Override public boolean canDrain() { return getStackInSlot(index).isEmpty(); }
+                    @Override public boolean canFillFluidType(FluidStack fluidStack) {
+                        return fluidStack != null && TileMechanicalDaisy.this.getRecipe(fluidStack.getFluid().getBlock().getDefaultState()) != null;
+                    }
+                    @Override public boolean canDrainFluidType(FluidStack fluidStack) { return true; }
+                };
+            }
+            return props;
         }
-
+        
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            int leftToFill = resource.getAmount();
+        public int fill(FluidStack resource, boolean doFill) {
+            if (resource == null) return 0;
+            int leftToFill = resource.amount;
 
             // Try to deposit the fluid to slots already filled with it
             for (int i = 0; i < 8; i++) {
                 if (leftToFill <= 0)
                     break;
-                if (!this.getStackInSlot(i).isEmpty())
+                if (!this.getStackInSlot(i).isEmpty() || this.fluids.get(i) == null)
                     continue;
-                if (this.fluids.get(i).getFluid() == resource.getFluid()) {
-                    int transfer = Math.min(leftToFill, this.getTankCapacity(i) - this.fluids.get(i).getAmount());
+                if (this.fluids.get(i).getFluid().equals(resource.getFluid())) {
+                    int transfer = Math.min(leftToFill, this.getTankCapacity() - this.fluids.get(i).amount);
                     leftToFill -= transfer;
-                    if (action == FluidAction.EXECUTE) {
-                        this.fluids.get(i).setAmount(this.fluids.get(i).getAmount() + transfer);
+                    if (doFill) {
+                        this.fluids.get(i).amount += transfer;
                         this.onContentsChanged(i);
                     }
                 }
@@ -296,50 +303,50 @@ public class TileMechanicalDaisy extends TileMod implements TileEntity, ITickabl
                     break;
                 if (!this.getStackInSlot(i).isEmpty())
                     continue;
-                if (this.fluids.get(i).isEmpty()) {
-                    int transfer = Math.min(leftToFill, this.getTankCapacity(i));
+                if (this.fluids.get(i) == null) {
+                    int transfer = Math.min(leftToFill, this.getTankCapacity());
                     leftToFill -= transfer;
-                    if (action == FluidAction.EXECUTE) {
-                        this.fluids.set(i, new FluidStack(resource.getFluid(), transfer));
+                    if (doFill) {
+                        this.fluids.set(i, new FluidStack(resource.getFluid(), transfer, resource.tag));
                         this.onContentsChanged(i);
                     }
                 }
             }
-            return resource.getAmount() - leftToFill;
+            return resource.amount - leftToFill;
         }
 
         @Nonnull
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            int leftToDrain = resource.getAmount();
+        public FluidStack drain(FluidStack resource, boolean doDrain) {
+            int leftToDrain = resource.amount;
 
             for (int i = 0; i < 8; i++) {
                 if (leftToDrain <= 0)
                     break;
-                if (!this.getStackInSlot(i).isEmpty())
+                if (!this.getStackInSlot(i).isEmpty() || this.fluids.get(i) == null)
                     continue;
-                if (this.fluids.get(i).getFluid() == resource.getFluid()) {
-                    int transfer = Math.min(this.fluids.get(i).getAmount(), leftToDrain);
+                if (this.fluids.get(i).getFluid().equals(resource.getFluid())) {
+                    int transfer = Math.min(this.fluids.get(i).amount, leftToDrain);
                     leftToDrain -= transfer;
-                    if (action == FluidAction.EXECUTE) {
-                        this.fluids.get(i).setAmount(this.fluids.get(i).getAmount() - transfer);
-                        if (this.fluids.get(i).getAmount() <= 0)
-                            this.fluids.set(i, FluidStack.EMPTY);
+                    if (doDrain) {
+                        this.fluids.get(i).amount -= transfer;
+                        if (this.fluids.get(i).amount <= 0)
+                            this.fluids.set(i, null);
                         this.onContentsChanged(i);
                     }
                 }
             }
 
-            if (resource.getAmount() - leftToDrain > 0) {
-                return new FluidStack(resource.getFluid(), resource.getAmount() - leftToDrain);
+            if (resource.amount - leftToDrain > 0) {
+                return new FluidStack(resource.getFluid(), resource.amount - leftToDrain, resource.tag);
             } else {
-                return FluidStack.EMPTY;
+                return null;
             }
         }
 
         @Nonnull
         @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
+        public FluidStack drain(int maxDrain, boolean doDrain) {
             int leftToDrain = maxDrain;
             Fluid drainFluid = null;
 
@@ -349,46 +356,46 @@ public class TileMechanicalDaisy extends TileMod implements TileEntity, ITickabl
                 if (!this.getStackInSlot(i).isEmpty())
                     continue;
                 if (drainFluid == null || drainFluid == this.fluids.get(i).getFluid()) {
-                    int transfer = Math.min(this.fluids.get(i).getAmount(), leftToDrain);
+                    int transfer = Math.min(this.fluids.get(i).amount, leftToDrain);
                     leftToDrain -= transfer;
                     if (transfer > 0)
                         drainFluid = this.fluids.get(i).getFluid();
-                    if (action == FluidAction.EXECUTE) {
-                        this.fluids.get(i).setAmount(this.fluids.get(i).getAmount() - transfer);
-                        if (this.fluids.get(i).getAmount() <= 0)
-                            this.fluids.set(i, FluidStack.EMPTY);
+                    if (doDrain) {
+                        this.fluids.get(i).amount -= transfer;
+                        if (this.fluids.get(i).amount <= 0)
+                            this.fluids.set(i, null);
                         this.onContentsChanged(i);
                     }
                 }
             }
 
             if (drainFluid == null) {
-                return FluidStack.EMPTY;
+                return null;
             } else {
                 return new FluidStack(drainFluid, maxDrain - leftToDrain);
             }
         }
 
         @Override
-        public CompoundNBT serializeNBT() {
-            CompoundNBT nbt = super.serializeNBT();
-            ListNBT tag = new ListNBT();
+        public NBTTagCompound serializeNBT() {
+            NBTTagCompound nbt = super.serializeNBT();
+            NBTTagList tag = new NBTTagList();
             for (int i = 0; i < 8; i++) {
-                CompoundNBT fluidNbt = new CompoundNBT();
+                NBTTagCompound fluidNbt = new NBTTagCompound();
                 this.fluids.get(i).writeToNBT(fluidNbt);
-                tag.add(i, fluidNbt);
+                tag.set(i, fluidNbt);
             }
-            nbt.put("fluids", tag);
+            nbt.setTag("fluids", tag);
             return nbt;
         }
 
         @Override
-        public void deserializeNBT(CompoundNBT nbt) {
+        public void deserializeNBT(NBTTagCompound nbt) {
             super.deserializeNBT(nbt);
-            if (nbt.contains("fluids")) {
-                ListNBT tag = nbt.getList("fluids", Constants.NBT.TAG_COMPOUND);
+            if (nbt.hasKey("fluids")) {
+                NBTTagList tag = nbt.getTagList("fluids", Constants.NBT.TAG_COMPOUND);
                 for (int i = 0; i < 8; i++) {
-                    CompoundNBT fluidNbt = tag.getCompound(i);
+                    NBTTagCompound fluidNbt = tag.getCompoundTagAt(i);
                     this.fluids.set(i, FluidStack.loadFluidStackFromNBT(fluidNbt));
                 }
             }
