@@ -2,79 +2,88 @@ package de.melanx.botanicalmachinery.core;
 
 import de.melanx.botanicalmachinery.BotanicalMachinery;
 import de.melanx.botanicalmachinery.blocks.*;
-import de.melanx.botanicalmachinery.blocks.base.ContainerBase;
-import de.melanx.botanicalmachinery.blocks.containers.*;
 import de.melanx.botanicalmachinery.blocks.tiles.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
-@GameRegistry.ObjectHolder(BotanicalMachinery.MODID)
+import java.util.ArrayList;
+import java.util.List;
+
+@Mod.EventBusSubscriber(modid = BotanicalMachinery.MODID)
 public class Registration {
-
-    public static final Block BLOCK_MANA_EMERALD = new Block(Material.IRON, MapColor.EMERALD).setHardness(5.0F).setResistance(6.0F).setRegistryName(LibNames.MANA_EMERALD_BLOCK);
-    public static final Block BLOCK_ALFHEIM_MARKET = new BlockAlfheimMarket();
-    public static final Block BLOCK_INDUSTRIAL_AGGLOMERATION_FACTORY = new BlockIndustrialAgglomerationFactory().setRegistryName(LibNames.INDUSTRIAL_AGGLOMERATION_FACTORY);
-    public static final Block BLOCK_MANA_BATTERY = new BlockManaBattery(BlockManaBattery.Variant.NORMAL).setRegistryName(LibNames.MANA_BATTERY);
-    public static final Block BLOCK_MANA_BATTERY_CREATIVE = new BlockManaBattery(BlockManaBattery.Variant.CREATIVE).setRegistryName(LibNames.MANA_BATTERY_CREATIVE);
-    public static final Block BLOCK_MECHANICAL_APOTHECARY = new BlockMechanicalApothecary().setRegistryName(LibNames.MECHANICAL_APOTHECARY);
-    public static final Block BLOCK_MECHANICAL_BREWERY = new BlockMechanicalBrewery().setRegistryName(LibNames.MECHANICAL_BREWERY);
-    public static final Block BLOCK_MECHANICAL_DAISY = new BlockMechanicalDaisy().setRegistryName(LibNames.MECHANICAL_DAISY);
-    public static final Block BLOCK_MECHANICAL_MANA_POOL = new BlockMechanicalManaPool().setRegistryName(LibNames.MECHANICAL_MANA_POOL);
-    public static final Block BLOCK_MECHANICAL_RUNIC_ALTAR = new BlockMechanicalRunicAltar().setRegistryName(LibNames.MECHANICAL_RUNIC_ALTAR);
-
-    public static final Item ITEM_MANA_EMERALD = new Item().setRegistryName(LibNames.MANA_EMERALD).setCreativeTab(BotanicalMachinery.creativeTab);
-    public static final Item ITEM_MANA_EMERALD_BLOCK = new ItemBlock(BLOCK_MANA_EMERALD).setRegistryName(LibNames.MANA_EMERALD_BLOCK).setCreativeTab(BotanicalMachinery.creativeTab);
-    public static final Item ITEM_ALFHEIM_MARKET = new ItemBlock(BLOCK_ALFHEIM_MARKET).setRegistryName(LibNames.ALFHEIM_MARKET).setCreativeTab(BotanicalMachinery.creativeTab);
-    public static final Item ITEM_INDUSTRIAL_AGGLOMERATION_FACTORY = new ItemBlock(BLOCK_INDUSTRIAL_AGGLOMERATION_FACTORY).setRegistryName(LibNames.INDUSTRIAL_AGGLOMERATION_FACTORY).setCreativeTab(BotanicalMachinery.creativeTab);
-    public static final Item ITEM_MANA_BATTERY = new ItemBlock(BLOCK_MANA_BATTERY).setRegistryName(LibNames.MANA_BATTERY).setCreativeTab(BotanicalMachinery.creativeTab);
-    public static final Item ITEM_MANA_BATTERY_CREATIVE = new ItemBlock(BLOCK_MANA_BATTERY_CREATIVE).setRegistryName(LibNames.MANA_BATTERY_CREATIVE).setCreativeTab(BotanicalMachinery.creativeTab);
-    public static final Item ITEM_MECHANICAL_APOTHECARY = new ItemBlock(BLOCK_MECHANICAL_APOTHECARY).setRegistryName(LibNames.MECHANICAL_APOTHECARY).setCreativeTab(BotanicalMachinery.creativeTab);
-    public static final Item ITEM_MECHANICAL_BREWERY = new ItemBlock(BLOCK_MECHANICAL_BREWERY).setRegistryName(LibNames.MECHANICAL_BREWERY).setCreativeTab(BotanicalMachinery.creativeTab);
-    public static final Item ITEM_MECHANICAL_DAISY = new ItemBlock(BLOCK_MECHANICAL_DAISY).setRegistryName(LibNames.MECHANICAL_DAISY).setCreativeTab(BotanicalMachinery.creativeTab);
-    public static final Item ITEM_MECHANICAL_MANA_POOL = new ItemBlock(BLOCK_MECHANICAL_MANA_POOL).setRegistryName(LibNames.MECHANICAL_MANA_POOL).setCreativeTab(BotanicalMachinery.creativeTab);
-    public static final Item ITEM_MECHANICAL_RUNIC_ALTAR = new ItemBlock(BLOCK_MECHANICAL_RUNIC_ALTAR).setRegistryName(LibNames.MECHANICAL_RUNIC_ALTAR).setCreativeTab(BotanicalMachinery.creativeTab);
     
+    public static final List<Block> BLOCKS = new ArrayList<>();
+    public static final List<Item> ITEMS = new ArrayList<>();
     
-    public static final TileEntityType<TileIndustrialAgglomerationFactory> TILE_INDUSTRIAL_AGGLOMERATION_FACTORY = TILES.register(LibNames.INDUSTRIAL_AGGLOMERATION_FACTORY, () -> TileEntityType.Builder.create(TileIndustrialAgglomerationFactory::new, BLOCK_INDUSTRIAL_AGGLOMERATION_FACTORY).build(null));
-    public static final TileEntityType<TileManaBattery> TILE_MANA_BATTERY = TILES.register(LibNames.MANA_BATTERY, () -> TileEntityType.Builder.create(TileManaBattery::new, BLOCK_MANA_BATTERY, BLOCK_MANA_BATTERY_CREATIVE).build(null));
-    public static final TileEntityType<TileMechanicalApothecary> TILE_MECHANICAL_APOTHECARY = TILES.register(LibNames.MECHANICAL_APOTHECARY, () -> TileEntityType.Builder.create(TileMechanicalApothecary::new, BLOCK_MECHANICAL_APOTHECARY).build(null));
-    public static final TileEntityType<TileMechanicalBrewery> TILE_MECHANICAL_BREWERY = TILES.register(LibNames.MECHANICAL_BREWERY, () -> TileEntityType.Builder.create(TileMechanicalBrewery::new, BLOCK_MECHANICAL_BREWERY).build(null));
-    public static final TileEntityType<TileMechanicalDaisy> TILE_MECHANICAL_DAISY = TILES.register(LibNames.MECHANICAL_DAISY, () -> TileEntityType.Builder.create(TileMechanicalDaisy::new, BLOCK_MECHANICAL_DAISY).build(null));
-    public static final TileEntityType<TileMechanicalManaPool> TILE_MECHANICAL_MANA_POOL = TILES.register(LibNames.MECHANICAL_MANA_POOL, () -> TileEntityType.Builder.create(TileMechanicalManaPool::new, BLOCK_MECHANICAL_MANA_POOL).build(null));
-    public static final TileEntityType<TileMechanicalRunicAltar> TILE_MECHANICAL_RUNIC_ALTAR = TILES.register(LibNames.MECHANICAL_RUNIC_ALTAR, () -> TileEntityType.Builder.create(TileMechanicalRunicAltar::new, BLOCK_MECHANICAL_RUNIC_ALTAR).build(null));
-
-    public static final RegistryObject<ContainerType<ContainerAlfheimMarket>> CONTAINER_ALFHEIM_MARKET = CONTAINERS.register(LibNames.ALFHEIM_MARKET, () -> ContainerBase.createContainerType(ContainerAlfheimMarket::new));
-    public static final RegistryObject<ContainerType<ContainerIndustrialAgglomerationFactory>> CONTAINER_INDUSTRIAL_AGGLOMERATION_FACTORY = CONTAINERS.register(LibNames.INDUSTRIAL_AGGLOMERATION_FACTORY, () -> ContainerBase.createContainerType(ContainerIndustrialAgglomerationFactory::new));
-    public static final RegistryObject<ContainerType<ContainerManaBattery>> CONTAINER_MANA_BATTERY = CONTAINERS.register(LibNames.MANA_BATTERY, () -> ContainerBase.createContainerType(ContainerManaBattery::new));
-    public static final RegistryObject<ContainerType<ContainerMechanicalApothecary>> CONTAINER_MECHANICAL_APOTHECARY = CONTAINERS.register(LibNames.MECHANICAL_APOTHECARY, () -> ContainerBase.createContainerType(ContainerMechanicalApothecary::new));
-    public static final RegistryObject<ContainerType<ContainerMechanicalBrewery>> CONTAINER_MECHANICAL_BREWERY = CONTAINERS.register(LibNames.MECHANICAL_BREWERY, () -> ContainerBase.createContainerType(ContainerMechanicalBrewery::new));
-    public static final RegistryObject<ContainerType<ContainerMechanicalDaisy>> CONTAINER_MECHANICAL_DAISY = CONTAINERS.register(LibNames.MECHANICAL_DAISY, () -> ContainerBase.createContainerType(ContainerMechanicalDaisy::new));
-    public static final RegistryObject<ContainerType<ContainerMechanicalManaPool>> CONTAINER_MECHANICAL_MANA_POOL = CONTAINERS.register(LibNames.MECHANICAL_MANA_POOL, () -> ContainerBase.createContainerType(ContainerMechanicalManaPool::new));
-    public static final RegistryObject<ContainerType<ContainerMechanicalRunicAltar>> CONTAINER_MECHANICAL_RUNIC_ALTAR = CONTAINERS.register(LibNames.MECHANICAL_RUNIC_ALTAR, () -> ContainerBase.createContainerType(ContainerMechanicalRunicAltar::new));
-
-    public static void init() {
-        GameRegistry.registerTileEntity(TileAlfheimMarket.class, new ResourceLocation(BotanicalMachinery.MODID, LibNames.ALFHEIM_MARKET));
-        GameRegistry.registerTileEntity(TileIndustrialAgglomerationFactory.class, new ResourceLocation(BotanicalMachinery.MODID, LibNames.INDUSTRIAL_AGGLOMERATION_FACTORY));
-        GameRegistry.registerTileEntity(TileManaBattery.class, new ResourceLocation(BotanicalMachinery.MODID, LibNames.MANA_BATTERY));
-        GameRegistry.registerTileEntity(TileMechanicalApothecary.class, new ResourceLocation(BotanicalMachinery.MODID, LibNames.MECHANICAL_APOTHECARY));
-        GameRegistry.registerTileEntity(TileMechanicalBrewery.class, new ResourceLocation(BotanicalMachinery.MODID, LibNames.MECHANICAL_BREWERY));
-        GameRegistry.registerTileEntity(TileMechanicalDaisy.class, new ResourceLocation(BotanicalMachinery.MODID, LibNames.MECHANICAL_DAISY));
-        GameRegistry.registerTileEntity(TileMechanicalManaPool.class, new ResourceLocation(BotanicalMachinery.MODID, LibNames.MECHANICAL_MANA_POOL));
-        GameRegistry.registerTileEntity(TileMechanicalRunicAltar.class, new ResourceLocation(BotanicalMachinery.MODID, LibNames.MECHANICAL_RUNIC_ALTAR));
-        
-        IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-        bus);
-        BotanicalMachinery.LOGGER.info(ITEMS.getEntries().size() + " items registered.");
-        bus);
-        BotanicalMachinery.LOGGER.info(BLOCKS.getEntries().size() + " blocks registered.");
-        TILES.register(bus);
-        BotanicalMachinery.LOGGER.info(TILES.getEntries().size() + " tiles registered.");
-        CONTAINERS.register(bus);
-        BotanicalMachinery.LOGGER.info(CONTAINERS.getEntries().size() + " containers registered.");
+    public static final Block BLOCK_MANA_EMERALD = registerBlock(new Block(Material.IRON, MapColor.EMERALD).setHardness(5.0F).setResistance(6.0F), LibNames.MANA_EMERALD_BLOCK);
+    public static final Block BLOCK_ALFHEIM_MARKET = registerBlock(new BlockAlfheimMarket(), LibNames.ALFHEIM_MARKET);
+    public static final Block BLOCK_INDUSTRIAL_AGGLOMERATION_FACTORY = registerBlock(new BlockIndustrialAgglomerationFactory(), LibNames.INDUSTRIAL_AGGLOMERATION_FACTORY);
+    public static final Block BLOCK_MANA_BATTERY = registerBlock(new BlockManaBattery(BlockManaBattery.Variant.NORMAL), LibNames.MANA_BATTERY); // Предположим Variant - это boolean
+    public static final Block BLOCK_MANA_BATTERY_CREATIVE = registerBlock(new BlockManaBattery(BlockManaBattery.Variant.CREATIVE), LibNames.MANA_BATTERY_CREATIVE);
+    public static final Block BLOCK_MECHANICAL_APOTHECARY = registerBlock(new BlockMechanicalApothecary(), LibNames.MECHANICAL_APOTHECARY);
+    public static final Block BLOCK_MECHANICAL_BREWERY = registerBlock(new BlockMechanicalBrewery(), LibNames.MECHANICAL_BREWERY);
+    public static final Block BLOCK_MECHANICAL_DAISY = registerBlock(new BlockMechanicalDaisy(), LibNames.MECHANICAL_DAISY);
+    public static final Block BLOCK_MECHANICAL_MANA_POOL = registerBlock(new BlockMechanicalManaPool(), LibNames.MECHANICAL_MANA_POOL);
+    public static final Block BLOCK_MECHANICAL_RUNIC_ALTAR = registerBlock(new BlockMechanicalRunicAltar(), LibNames.MECHANICAL_RUNIC_ALTAR);
+    
+    public static final Item ITEM_MANA_EMERALD = registerItem(new Item(), LibNames.MANA_EMERALD);
+    public static final Item ITEM_MANA_EMERALD_BLOCK = registerItem(new ItemBlock(BLOCK_MANA_EMERALD), LibNames.MANA_EMERALD_BLOCK);
+    public static final Item ITEM_ALFHEIM_MARKET = registerItem(new ItemBlock(BLOCK_ALFHEIM_MARKET), LibNames.ALFHEIM_MARKET);
+    public static final Item ITEM_INDUSTRIAL_AGGLOMERATION_FACTORY = registerItem(new ItemBlock(BLOCK_INDUSTRIAL_AGGLOMERATION_FACTORY), LibNames.INDUSTRIAL_AGGLOMERATION_FACTORY);
+    public static final Item ITEM_MANA_BATTERY = registerItem(new ItemBlock(BLOCK_MANA_BATTERY), LibNames.MANA_BATTERY);
+    public static final Item ITEM_MANA_BATTERY_CREATIVE = registerItem(new ItemBlock(BLOCK_MANA_BATTERY_CREATIVE), LibNames.MANA_BATTERY_CREATIVE);
+    public static final Item ITEM_MECHANICAL_APOTHECARY = registerItem(new ItemBlock(BLOCK_MECHANICAL_APOTHECARY), LibNames.MECHANICAL_APOTHECARY);
+    public static final Item ITEM_MECHANICAL_BREWERY = registerItem(new ItemBlock(BLOCK_MECHANICAL_BREWERY), LibNames.MECHANICAL_BREWERY);
+    public static final Item ITEM_MECHANICAL_DAISY = registerItem(new ItemBlock(BLOCK_MECHANICAL_DAISY), LibNames.MECHANICAL_DAISY);
+    public static final Item ITEM_MECHANICAL_MANA_POOL = registerItem(new ItemBlock(BLOCK_MECHANICAL_MANA_POOL), LibNames.MECHANICAL_MANA_POOL);
+    public static final Item ITEM_MECHANICAL_RUNIC_ALTAR = registerItem(new ItemBlock(BLOCK_MECHANICAL_RUNIC_ALTAR), LibNames.MECHANICAL_RUNIC_ALTAR);
+    
+    @SubscribeEvent
+    public static void registerBlocks(RegistryEvent.Register<Block> event) {
+        event.getRegistry().registerAll(BLOCKS.toArray(new Block[0]));
+        registerTileEntities();
+    }
+    
+    @SubscribeEvent
+    public static void registerItems(RegistryEvent.Register<Item> event) {
+        event.getRegistry().registerAll(ITEMS.toArray(new Item[0]));
+    }
+    
+    private static Block registerBlock(Block block, String name) {
+        block.setRegistryName(BotanicalMachinery.MODID, name);
+        block.setCreativeTab(BotanicalMachinery.creativeTab);
+        BLOCKS.add(block);
+        return block;
+    }
+    
+    private static Item registerItem(Item item, String name) {
+        item.setRegistryName(BotanicalMachinery.MODID, name);
+        item.setCreativeTab(BotanicalMachinery.creativeTab);
+        ITEMS.add(item);
+        return item;
+    }
+    
+    private static void registerTileEntities() {
+        registerTE(TileAlfheimMarket.class, LibNames.ALFHEIM_MARKET);
+        registerTE(TileIndustrialAgglomerationFactory.class, LibNames.INDUSTRIAL_AGGLOMERATION_FACTORY);
+        registerTE(TileManaBattery.class, LibNames.MANA_BATTERY);
+        registerTE(TileMechanicalApothecary.class, LibNames.MECHANICAL_APOTHECARY);
+        registerTE(TileMechanicalBrewery.class, LibNames.MECHANICAL_BREWERY);
+        registerTE(TileMechanicalDaisy.class, LibNames.MECHANICAL_DAISY);
+        registerTE(TileMechanicalManaPool.class, LibNames.MECHANICAL_MANA_POOL);
+        registerTE(TileMechanicalRunicAltar.class, LibNames.MECHANICAL_RUNIC_ALTAR);
+    }
+    
+    private static void registerTE(Class<? extends TileEntity> tileClass, String name) {
+        GameRegistry.registerTileEntity(tileClass, new ResourceLocation(BotanicalMachinery.MODID, name));
     }
 }
