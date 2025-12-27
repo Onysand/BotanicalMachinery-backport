@@ -2,12 +2,10 @@ package de.melanx.botanicalmachinery.blocks;
 
 import de.melanx.botanicalmachinery.blocks.base.BlockBase;
 import de.melanx.botanicalmachinery.blocks.tiles.TileManaBattery;
-import de.melanx.botanicalmachinery.core.Registration;
-import net.minecraft.block.BlockState;
-import net.minecraft.inventory.container.ContainerType;
+import de.melanx.botanicalmachinery.gui.GuiHandler;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
@@ -26,22 +24,21 @@ public class BlockManaBattery extends BlockBase {
         CREATIVE,
         NORMAL
     }
-
+    
     @Nullable
     @Override
-    public TileEntity createNewTileEntity(@Nonnull IBlockReader worldIn) {
+    public TileEntity createNewTileEntity(World world, int i) {
         return new TileManaBattery();
     }
-
-    @Nullable
+    
     @Override
-    protected ContainerType<?> getContainerSupplier() {
-        return Registration.CONTAINER_MANA_BATTERY.get();
+    public int getGuiId() {
+        return GuiHandler.MANA_BATTERY_ID;
     }
-
+    
     @SuppressWarnings("deprecation")
     @Override
-    public int getComparatorInputOverride(@Nonnull BlockState blockState, @Nonnull World worldIn, @Nonnull BlockPos pos) {
+    public int getComparatorInputOverride(@Nonnull IBlockState blockState, @Nonnull World worldIn, @Nonnull BlockPos pos) {
         TileManaBattery tile = (TileManaBattery) worldIn.getTileEntity(pos);
         return tile != null ? tile.getCurrentMana() / tile.getManaCap() * 15 : 0;
     }

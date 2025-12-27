@@ -1,197 +1,103 @@
 package de.melanx.botanicalmachinery.blocks.base;
 
 import de.melanx.botanicalmachinery.BotanicalMachinery;
-import io.netty.buffer.Unpooled;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
+import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
 import vazkii.botania.api.wand.IWandHUD;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.function.Supplier;
-
+@SuppressWarnings({"NullableProblems", "deprecation"})
 public abstract class BlockBase extends Block implements ITileEntityProvider, IWandHUD {
-    
-    public static final AxisAlignedBB[] FRAME_SHAPES = new AxisAlignedBB[] {
-        box(0, 0, 0, 16, 1, 16),
-        box(0, 0, 0, 1, 16, 1),
-        box(15, 0, 0, 16, 16, 1),
-        box(0, 0, 15, 1, 16, 16),
-        box(15, 0, 15, 16, 16, 16),
-        box(0, 15, 0, 1, 16, 16),
-        box(0, 15, 0, 16, 16, 1),
-        box(15, 15, 0, 16, 16, 16),
-        box(0, 15, 15, 16, 16, 16)
-    };
-    
-    private static AxisAlignedBB box(double x1, double y1, double z1, double x2, double y2, double z2) {
-        return new AxisAlignedBB(x1 / 16, y1 / 16, z1 / 16, x2 / 16, y2 / 16, z2 / 16);
-    }
+   
+    public static final PropertyDirection FACING = BlockHorizontal.FACING;
+  
+    public static final AxisAlignedBB FRAME_SHAPE = new AxisAlignedBB(0, 0, 0, 1, 1, 1);
 
     private final boolean fullCube;
+    
+    public abstract int getGuiId();
 
     public BlockBase(boolean fullCube) {
         super(Material.ROCK);
         this.fullCube = fullCube;
+        this.setDefaultState(this.getBlockState().getBaseState().withProperty(FACING, EnumFacing.NORTH));
     }
-
-//    @Nullable
-//    @Override
-//    public INamedContainerProvider getContainer(@Nonnull BlockState state, World worldIn, @Nonnull BlockPos pos) {
-//        TileEntity tile = worldIn.getTileEntity(pos);
-//        return tile instanceof INamedContainerProvider ? (INamedContainerProvider) tile : null;
-//    }
-//
-//    @Nullable
-//    @Override
-//    public BlockState getStateForPlacement(BlockItemUseContext context) {
-//        return this.getDefaultState().with(BlockStateProperties.HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
-//    }
-//
-//    @Override
-//    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-//        builder.add(BlockStateProperties.HORIZONTAL_FACING);
-//    }
-//
-//    @Override
-//    public void renderHUD(Minecraft mc, World world, BlockPos pos) {
-//        //noinspection ConstantConditions
-//        ((TileBase) world.getTileEntity(pos)).renderHUD(mc);
-//    }
-//
-//    @SuppressWarnings("deprecation")
-//    @Nonnull
-//    @Override
-//    public ActionResultType onBlockActivated(@Nonnull BlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull PlayerEntity player, @Nonnull Hand hand, @Nonnull BlockRayTraceResult hit) {
-//        ContainerType<?> containerType = this.getContainerType();
-//        if (containerType != null) {
-//            if (!world.isRemote) {
-//                INamedContainerProvider containerProvider = new INamedContainerProvider() {
-//                    @Override
-//                    public ITextComponent getDisplayName() {
-//                        //noinspection ConstantConditions
-//                        return new TranslationTextComponent("screen." + BotanicalMachinery.MODID + "." + BlockBase.this.getRegistryName().getPath());
-//                    }
-//
-//                    @Override
-//                    public Container createMenu(int windowId, @Nonnull PlayerInventory playerInventory, @Nonnull PlayerEntity player) {
-//                        PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
-//                        buffer.writeBlockPos(pos);
-//                        return containerType.create(windowId, playerInventory, buffer);
-//                    }
-//                };
-//                NetworkHooks.openGui((ServerPlayerEntity) player, containerProvider, pos);
-//            }
-//            return ActionResultType.SUCCESS;
-//        } else {
-//            return super.onBlockActivated(state, world, pos, player, hand, hit);
-//        }
-//    }
-    
     
     @Override
-    public boolean onBlockActivated(World worldIn,
-                                    BlockPos pos,
-                                    IBlockState state,
-                                    EntityPlayer playerIn,
-                                    EnumHand hand,
-                                    EnumFacing side,
-                                    float hitX,
-                                    float hitY,
-                                    float hitZ) {
-        Supplier<Container> containerSupplier = this.getContainerSupplier();
-        if (containerSupplier != null) {
-            if (!world.isRemote) {
-                INamedContainerProvider containerProvider = new INamedContainerProvider() {
-                    @Override
-                    public ITextComponent getDisplayName() {
-                        //noinspection ConstantConditions
-                        return new TextComponentTranslation("screen." + BotanicalMachinery.MODID + "." + BlockBase.this.getRegistryName().getPath());
-                    }
-
-                    @Override
-                    public Container createMenu(int windowId, @Nonnull InventoryPlayer playerInventory, @Nonnull EntityPlayer player) {
-                        PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
-                        buffer.writeBlockPos(pos);
-                        return containerSupplier.get();
-                        return containerSupplier.create(windowId, playerInventory, buffer);
-                    }
-                };
-                playerIn.openGui(containerSupplier, containerProvider, worldIn, pos.getX(), pos.getY(), pos.getZ());
-                NetworkHooks.openGui((ServerPlayerEntity) player, containerProvider, pos);
+    public void renderHUD(Minecraft minecraft, ScaledResolution scaledResolution, World world, BlockPos blockPos) {
+        ((TileBase) world.getTileEntity(blockPos)).renderHUD(minecraft);
+    }
+    
+    @Override
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
+        if (!worldIn.isRemote) {
+            TileEntity te = worldIn.getTileEntity(pos);
+            if (te instanceof TileBase) {
+                playerIn.openGui(BotanicalMachinery.instance, ((TileBase) te).getGuiId() , worldIn, pos.getX(), pos.getY(), pos.getZ());
+                return true;
             }
-            return true;
         }
-        
-        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, side, hitX, hitY, hitZ);
+        return false;
     }
     
-    @Nullable
-    protected Supplier<Container> getContainerSupplier() {
-        return null;
-    }
-
-    @SuppressWarnings("deprecation")
     @Override
-    public int getOpacity(@Nonnull BlockState state, @Nonnull IBlockReader world, @Nonnull BlockPos pos) {
-        return (!this.fullCube) ? 0 : super.getOpacity(state, world, pos);
+    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
+        return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
     }
-
+    
     @Override
-    public boolean propagatesSkylightDown(@Nonnull BlockState state, @Nonnull IBlockReader reader, @Nonnull BlockPos pos) {
-        return !this.fullCube;
+    public IBlockState getStateFromMeta(int meta) {
+        return this.getDefaultState().withProperty(FACING, EnumFacing.byHorizontalIndex(meta));
     }
-
+    
     @Override
-    public boolean isTransparent(@Nonnull BlockState state) {
-        return !this.fullCube;
+    public int getMetaFromState(IBlockState state) {
+        return state.getValue(FACING).getHorizontalIndex();
     }
-
-    @Nonnull
+    
     @Override
-    public VoxelShape getRenderShape(@Nonnull BlockState state, @Nonnull IBlockReader world, @Nonnull BlockPos pos) {
-        return (!this.fullCube) ? FRAME_SHAPES : super.getRenderShape(state, world, pos);
+    protected BlockStateContainer createBlockState() {
+        return new BlockStateContainer(this, FACING);
     }
-
-    @Nonnull
+    
     @Override
-    public VoxelShape getShape(@Nonnull BlockState state, @Nonnull IBlockReader world, @Nonnull BlockPos pos, @Nonnull ISelectionContext context) {
-        return (!this.fullCube) ? FRAME_SHAPES : super.getShape(state, world, pos, context);
+    public boolean isOpaqueCube(IBlockState state) {
+        return fullCube;
     }
-
+    
     @Override
-    public boolean hasComparatorInputOverride(@Nonnull BlockState state) {
+    public boolean isFullCube(IBlockState state) {
+        return fullCube;
+    }
+    
+    @Override
+    public BlockRenderLayer getRenderLayer() {
+        return fullCube ? BlockRenderLayer.SOLID : BlockRenderLayer.CUTOUT;
+    }
+    
+    @Override
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+        super.breakBlock(worldIn, pos, state);
+        worldIn.removeTileEntity(pos);
+    }
+    
+    @Override
+    public boolean hasTileEntity(IBlockState state) {
         return true;
     }
 }
