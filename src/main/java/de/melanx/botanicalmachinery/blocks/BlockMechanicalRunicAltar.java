@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 public class BlockMechanicalRunicAltar extends BlockBase {
 
     public static final DirectionShape SHAPE = new DirectionShape(VoxelShapes.or(
-            BlockBase.FRAME_SHAPE,
+            BlockBase.FRAME_SHAPES,
             makeCuboidShape(2, 5, 2, 14, 9, 14),
             makeCuboidShape(6, 3, 6, 10, 5, 10),
             makeCuboidShape(4, 1, 4, 12, 3, 12)
@@ -39,7 +39,7 @@ public class BlockMechanicalRunicAltar extends BlockBase {
 
     @Nullable
     @Override
-    protected ContainerType<?> getContainerType() {
+    protected ContainerType<?> getContainerSupplier() {
         return Registration.CONTAINER_MECHANICAL_RUNIC_ALTAR.get();
     }
 

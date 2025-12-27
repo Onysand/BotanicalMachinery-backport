@@ -6,10 +6,13 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.Minecraft;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.Container;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.INamedContainerProvider;
@@ -17,15 +20,17 @@ import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
@@ -34,84 +39,126 @@ import vazkii.botania.api.wand.IWandHUD;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
-@SuppressWarnings("deprecation")
 public abstract class BlockBase extends Block implements ITileEntityProvider, IWandHUD {
-
-    public static final VoxelShape FRAME_SHAPE = VoxelShapes.or(
-            makeCuboidShape(0, 0, 0, 16, 1, 16),
-            makeCuboidShape(0, 0, 0, 1, 16, 1),
-            makeCuboidShape(15, 0, 0, 16, 16, 1),
-            makeCuboidShape(0, 0, 15, 1, 16, 16),
-            makeCuboidShape(15, 0, 15, 16, 16, 16),
-            makeCuboidShape(0, 15, 0, 1, 16, 16),
-            makeCuboidShape(0, 15, 0, 16, 16, 1),
-            makeCuboidShape(15, 15, 0, 16, 16, 16),
-            makeCuboidShape(0, 15, 15, 16, 16, 16)
-    );
+    
+    public static final AxisAlignedBB[] FRAME_SHAPES = new AxisAlignedBB[] {
+        box(0, 0, 0, 16, 1, 16),
+        box(0, 0, 0, 1, 16, 1),
+        box(15, 0, 0, 16, 16, 1),
+        box(0, 0, 15, 1, 16, 16),
+        box(15, 0, 15, 16, 16, 16),
+        box(0, 15, 0, 1, 16, 16),
+        box(0, 15, 0, 16, 16, 1),
+        box(15, 15, 0, 16, 16, 16),
+        box(0, 15, 15, 16, 16, 16)
+    };
+    
+    private static AxisAlignedBB box(double x1, double y1, double z1, double x2, double y2, double z2) {
+        return new AxisAlignedBB(x1 / 16, y1 / 16, z1 / 16, x2 / 16, y2 / 16, z2 / 16);
+    }
 
     private final boolean fullCube;
 
     public BlockBase(boolean fullCube) {
-        super(fullCube ? Properties.create(Material.ROCK).hardnessAndResistance(2, 10) : Properties.create(Material.ROCK).hardnessAndResistance(2, 10).variableOpacity());
+        super(Material.ROCK);
         this.fullCube = fullCube;
     }
 
-    @Nullable
+//    @Nullable
+//    @Override
+//    public INamedContainerProvider getContainer(@Nonnull BlockState state, World worldIn, @Nonnull BlockPos pos) {
+//        TileEntity tile = worldIn.getTileEntity(pos);
+//        return tile instanceof INamedContainerProvider ? (INamedContainerProvider) tile : null;
+//    }
+//
+//    @Nullable
+//    @Override
+//    public BlockState getStateForPlacement(BlockItemUseContext context) {
+//        return this.getDefaultState().with(BlockStateProperties.HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
+//    }
+//
+//    @Override
+//    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+//        builder.add(BlockStateProperties.HORIZONTAL_FACING);
+//    }
+//
+//    @Override
+//    public void renderHUD(Minecraft mc, World world, BlockPos pos) {
+//        //noinspection ConstantConditions
+//        ((TileBase) world.getTileEntity(pos)).renderHUD(mc);
+//    }
+//
+//    @SuppressWarnings("deprecation")
+//    @Nonnull
+//    @Override
+//    public ActionResultType onBlockActivated(@Nonnull BlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull PlayerEntity player, @Nonnull Hand hand, @Nonnull BlockRayTraceResult hit) {
+//        ContainerType<?> containerType = this.getContainerType();
+//        if (containerType != null) {
+//            if (!world.isRemote) {
+//                INamedContainerProvider containerProvider = new INamedContainerProvider() {
+//                    @Override
+//                    public ITextComponent getDisplayName() {
+//                        //noinspection ConstantConditions
+//                        return new TranslationTextComponent("screen." + BotanicalMachinery.MODID + "." + BlockBase.this.getRegistryName().getPath());
+//                    }
+//
+//                    @Override
+//                    public Container createMenu(int windowId, @Nonnull PlayerInventory playerInventory, @Nonnull PlayerEntity player) {
+//                        PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
+//                        buffer.writeBlockPos(pos);
+//                        return containerType.create(windowId, playerInventory, buffer);
+//                    }
+//                };
+//                NetworkHooks.openGui((ServerPlayerEntity) player, containerProvider, pos);
+//            }
+//            return ActionResultType.SUCCESS;
+//        } else {
+//            return super.onBlockActivated(state, world, pos, player, hand, hit);
+//        }
+//    }
+    
+    
     @Override
-    public INamedContainerProvider getContainer(@Nonnull BlockState state, World worldIn, @Nonnull BlockPos pos) {
-        TileEntity tile = worldIn.getTileEntity(pos);
-        return tile instanceof INamedContainerProvider ? (INamedContainerProvider) tile : null;
-    }
-
-    @Nullable
-    @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(BlockStateProperties.HORIZONTAL_FACING, context.getPlacementHorizontalFacing().getOpposite());
-    }
-
-    @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        builder.add(BlockStateProperties.HORIZONTAL_FACING);
-    }
-
-    @Override
-    public void renderHUD(Minecraft mc, World world, BlockPos pos) {
-        //noinspection ConstantConditions
-        ((TileBase) world.getTileEntity(pos)).renderHUD(mc);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Nonnull
-    @Override
-    public ActionResultType onBlockActivated(@Nonnull BlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull PlayerEntity player, @Nonnull Hand hand, @Nonnull BlockRayTraceResult hit) {
-        ContainerType<?> containerType = this.getContainerType();
-        if (containerType != null) {
+    public boolean onBlockActivated(World worldIn,
+                                    BlockPos pos,
+                                    IBlockState state,
+                                    EntityPlayer playerIn,
+                                    EnumHand hand,
+                                    EnumFacing side,
+                                    float hitX,
+                                    float hitY,
+                                    float hitZ) {
+        Supplier<Container> containerSupplier = this.getContainerSupplier();
+        if (containerSupplier != null) {
             if (!world.isRemote) {
                 INamedContainerProvider containerProvider = new INamedContainerProvider() {
                     @Override
                     public ITextComponent getDisplayName() {
                         //noinspection ConstantConditions
-                        return new TranslationTextComponent("screen." + BotanicalMachinery.MODID + "." + BlockBase.this.getRegistryName().getPath());
+                        return new TextComponentTranslation("screen." + BotanicalMachinery.MODID + "." + BlockBase.this.getRegistryName().getPath());
                     }
 
                     @Override
-                    public Container createMenu(int windowId, @Nonnull PlayerInventory playerInventory, @Nonnull PlayerEntity player) {
+                    public Container createMenu(int windowId, @Nonnull InventoryPlayer playerInventory, @Nonnull EntityPlayer player) {
                         PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
                         buffer.writeBlockPos(pos);
-                        return containerType.create(windowId, playerInventory, buffer);
+                        return containerSupplier.get();
+                        return containerSupplier.create(windowId, playerInventory, buffer);
                     }
                 };
+                playerIn.openGui(containerSupplier, containerProvider, worldIn, pos.getX(), pos.getY(), pos.getZ());
                 NetworkHooks.openGui((ServerPlayerEntity) player, containerProvider, pos);
             }
-            return ActionResultType.SUCCESS;
-        } else {
-            return super.onBlockActivated(state, world, pos, player, hand, hit);
+            return true;
         }
+        
+        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, side, hitX, hitY, hitZ);
     }
-
+    
     @Nullable
-    protected ContainerType<?> getContainerType() {
+    protected Supplier<Container> getContainerSupplier() {
         return null;
     }
 
@@ -134,13 +181,13 @@ public abstract class BlockBase extends Block implements ITileEntityProvider, IW
     @Nonnull
     @Override
     public VoxelShape getRenderShape(@Nonnull BlockState state, @Nonnull IBlockReader world, @Nonnull BlockPos pos) {
-        return (!this.fullCube) ? FRAME_SHAPE : super.getRenderShape(state, world, pos);
+        return (!this.fullCube) ? FRAME_SHAPES : super.getRenderShape(state, world, pos);
     }
 
     @Nonnull
     @Override
     public VoxelShape getShape(@Nonnull BlockState state, @Nonnull IBlockReader world, @Nonnull BlockPos pos, @Nonnull ISelectionContext context) {
-        return (!this.fullCube) ? FRAME_SHAPE : super.getShape(state, world, pos, context);
+        return (!this.fullCube) ? FRAME_SHAPES : super.getShape(state, world, pos, context);
     }
 
     @Override

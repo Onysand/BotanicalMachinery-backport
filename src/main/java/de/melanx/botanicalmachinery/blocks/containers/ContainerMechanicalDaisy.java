@@ -2,12 +2,8 @@ package de.melanx.botanicalmachinery.blocks.containers;
 
 import de.melanx.botanicalmachinery.blocks.base.ContainerBase;
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalDaisy;
-import de.melanx.botanicalmachinery.core.Registration;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.ClickType;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.BlockItem;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -24,18 +20,18 @@ public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy>
 
     private final TileMechanicalDaisy.InventoryHandler inventory;
 
-    public ContainerMechanicalDaisy(int windowId, World world, BlockPos pos, PlayerInventory playerInventory, PlayerEntity player) {
-        super(Registration.CONTAINER_MECHANICAL_DAISY.get(), windowId, world, pos, playerInventory, player, 8, 8);
+    public ContainerMechanicalDaisy(World world, BlockPos pos, InventoryPlayer playerInventory, EntityPlayer player) {
+        super(world, pos, playerInventory, player, 8, 8);
 
         this.inventory = this.tile.getInventory();
-        this.addSlot(new ItemAndFluidSlot(this.inventory, 0, 79, 16));
-        this.addSlot(new ItemAndFluidSlot(this.inventory, 1, 100, 16));
-        this.addSlot(new ItemAndFluidSlot(this.inventory, 2, 121, 16));
-        this.addSlot(new ItemAndFluidSlot(this.inventory, 3, 79, 37));
-        this.addSlot(new ItemAndFluidSlot(this.inventory, 4, 121, 37));
-        this.addSlot(new ItemAndFluidSlot(this.inventory, 5, 79, 58));
-        this.addSlot(new ItemAndFluidSlot(this.inventory, 6, 100, 58));
-        this.addSlot(new ItemAndFluidSlot(this.inventory, 7, 121, 58));
+        this.addSlotToContainer(new ItemAndFluidSlot(this.inventory, 0, 79, 16));
+        this.addSlotToContainer(new ItemAndFluidSlot(this.inventory, 1, 100, 16));
+        this.addSlotToContainer(new ItemAndFluidSlot(this.inventory, 2, 121, 16));
+        this.addSlotToContainer(new ItemAndFluidSlot(this.inventory, 3, 79, 37));
+        this.addSlotToContainer(new ItemAndFluidSlot(this.inventory, 4, 121, 37));
+        this.addSlotToContainer(new ItemAndFluidSlot(this.inventory, 5, 79, 58));
+        this.addSlotToContainer(new ItemAndFluidSlot(this.inventory, 6, 100, 58));
+        this.addSlotToContainer(new ItemAndFluidSlot(this.inventory, 7, 121, 58));
 
         this.layoutPlayerInventorySlots(8, 84);
     }

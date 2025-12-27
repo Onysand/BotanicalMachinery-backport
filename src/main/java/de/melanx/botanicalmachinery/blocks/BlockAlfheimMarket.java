@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 public class BlockAlfheimMarket extends BlockBase {
 
     public static final DirectionShape SHAPE = new DirectionShape(VoxelShapes.or(
-            BlockBase.FRAME_SHAPE,
+            BlockBase.FRAME_SHAPES,
             makeCuboidShape(4.4, 1, 8.8, 11.6, 13, 11.2),
             makeCuboidShape(0, 0, 8.8, 0, 0, 11.2),
             makeCuboidShape(3.2, 0, 3.6, 6.8, 7.4, 7.2),
@@ -40,7 +40,7 @@ public class BlockAlfheimMarket extends BlockBase {
 
     @Nullable
     @Override
-    protected ContainerType<?> getContainerType() {
+    protected ContainerType<?> getContainerSupplier() {
         return Registration.CONTAINER_ALFHEIM_MARKET.get();
     }
 

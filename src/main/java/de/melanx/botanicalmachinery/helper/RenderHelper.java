@@ -1,46 +1,53 @@
 package de.melanx.botanicalmachinery.helper;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
 import de.melanx.botanicalmachinery.core.LibResources;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.model.BakedQuad;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.IBakedModel;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.Direction;
+import net.minecraft.util.EnumFacing;
+import net.minecraftforge.client.ForgeHooksClient;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.stream.Collectors;
 
 public class RenderHelper {
-
-    public static void renderFadedItem(Screen screen, List<Item> items, int x, int y) {
-        if (items.isEmpty()) {
-            items = Collections.singletonList(Items.AIR);
-        }
+    
+    public static void renderFadedItem(GuiContainer screen, ArrayList<Item> items, int x, int y) {
+        renderFadedItem(screen, items.stream().map(ItemStack::new).collect(Collectors.toList()), x, y);
+    }
+    
+    public static void renderFadedItem(GuiContainer screen, List<ItemStack> items, int x, int y) {
+        if (items.isEmpty()) items = Collections.singletonList(new ItemStack(Items.AIR));
         int idx = (items.size() + ((ClientTickHandler.ticksInGame / 20) % items.size())) % items.size();
         renderFadedItem(screen, items.get(idx), x, y);
     }
-
-    public static void renderFadedItem(Screen screen, Item item, int x, int y) {
-        screen.getMinecraft().getItemRenderer().renderItemIntoGUI(new ItemStack(item), x, y);
+    
+    public static void renderFadedItem(GuiContainer screen, Item item, int x, int y) {
+        renderFadedItem(screen, new ItemStack(item), x, y);
+    }
+    
+    public static void renderFadedItem(GuiContainer screen, ItemStack stack, int x, int y) {
+        screen.mc.getRenderItem().renderItemIntoGUI(stack, x, y);
+        
         GlStateManager.enableBlend();
-        GlStateManager.disableDepthTest();
-        screen.getMinecraft().getTextureManager().bindTexture(LibResources.HUD);
-        //noinspection deprecation
-        GlStateManager.color4f(1, 1, 1, 1);
-        vazkii.botania.client.core.helper.RenderHelper.drawTexturedModalRect(x, y, 16, 0, 16, 16);
+        GlStateManager.disableDepth();
+        screen.mc.getTextureManager().bindTexture(LibResources.HUD);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        
+        vazkii.botania.client.core.helper.RenderHelper.drawTexturedModalRect(x, y, 1.0F, 16, 0, 16, 16);
+        GlStateManager.enableDepth();
+        GlStateManager.disableBlend();
     }
 
     /**
@@ -74,8 +81,8 @@ public class RenderHelper {
                 if (pixelsNowY < texHeight) {
                     maxVnow = minV + ((maxV - minV) * (pixelsNowY / (float) texHeight));
                 }
-
-                AbstractGui.innerBlit(x + pixelsRenderedX, x + pixelsRenderedX + pixelsNowX,
+                
+                drawInnerBlit(x + pixelsRenderedX, x + pixelsRenderedX + pixelsNowX,
                         y + pixelsRenderedY, y + pixelsRenderedY + pixelsNowY,
                         0, minU, maxUnow, minV, maxVnow);
 
@@ -84,68 +91,89 @@ public class RenderHelper {
             pixelsRenderedX += pixelsNowX;
         }
     }
-
-    public static void renderItemTinted(ItemStack stack, ItemCameraTransforms.TransformType transformType, int light, int overlay, MatrixStack matrixStack, IRenderTypeBuffer buffer, float r, float g, float b) {
-        if (!stack.isEmpty()) {
-            boolean isGui = transformType == ItemCameraTransforms.TransformType.GUI;
-            boolean isFixed = isGui || transformType == ItemCameraTransforms.TransformType.GROUND || transformType == ItemCameraTransforms.TransformType.FIXED;
-
-            IBakedModel model = Minecraft.getInstance().getItemRenderer().getItemModelWithOverrides(stack, null, null);
-            model = net.minecraftforge.client.ForgeHooksClient.handleCameraTransforms(matrixStack, model, transformType, false);
-
-            matrixStack.push();
-            matrixStack.translate(-0.5D, -0.5D, -0.5D);
-
-            if (!model.isBuiltInRenderer() && (stack.getItem() != Items.TRIDENT || isFixed)) {
-                RenderType type = RenderTypeLookup.getRenderType(stack);
-                if (isGui && Objects.equals(type, Atlases.getTranslucentBlockType())) {
-                    type = Atlases.getTranslucentCullBlockType();
-                }
-
-                IVertexBuilder ivertexbuilder = ItemRenderer.getBuffer(buffer, type, true, stack.hasEffect());
-                renderTintedModel(model, light, overlay, matrixStack, ivertexbuilder, r, g, b);
-            } else {
-                //noinspection deprecation
-                GlStateManager.color4f(r, g, b, 1);
-                stack.getItem().getItemStackTileEntityRenderer().render(stack, matrixStack, buffer, light, overlay);
-                //noinspection deprecation
-                GlStateManager.color4f(1, 1, 1, 1);
-            }
-
-            matrixStack.pop();
+    
+    public static void renderItemTinted(ItemStack stack, ItemCameraTransforms.TransformType transformType, float r, float g, float b) {
+        if (stack.isEmpty()) return;
+        
+        GlStateManager.pushMatrix();
+        IBakedModel model = Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(stack, null, null);
+        model = ForgeHooksClient.handleCameraTransforms(model, transformType, false);
+        
+        GlStateManager.translate(-0.5F, -0.5F, -0.5F);
+        GlStateManager.color(r, g, b, 1.0F);
+        
+        if (!model.isBuiltInRenderer()) {
+            renderModelCustom(model, stack, 1.0F, r, g, b);
+        } else {
+            stack.getItem().getTileEntityItemStackRenderer().renderByItem(stack);
         }
+        
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.popMatrix();
     }
-
-    private static void renderTintedModel(IBakedModel model, int light, int overlay, MatrixStack matrixStack, IVertexBuilder buffer, float r, float g, float b) {
-        Random random = new Random();
-
-        for (Direction direction : Direction.values()) {
-            random.setSeed(42);
-            //noinspection deprecation
-            renderTintedQuads(matrixStack, buffer, model.getQuads(null, direction, random), light, overlay, r, g, b);
+    
+    private static void renderModelCustom(IBakedModel model, ItemStack stack, float alpha, float r, float g, float b) {
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+        buffer.begin(7, DefaultVertexFormats.ITEM);
+        
+        for (EnumFacing facing : EnumFacing.values()) {
+            renderQuads(buffer, model.getQuads(null, facing, 42L), r, g, b, alpha);
         }
-
-        random.setSeed(42);
-        //noinspection deprecation
-        renderTintedQuads(matrixStack, buffer, model.getQuads(null, null, random), light, overlay, r, g, b);
+        renderQuads(buffer, model.getQuads(null, null, 42L), r, g, b, alpha);
+        
+        tessellator.draw();
     }
-
-    private static void renderTintedQuads(MatrixStack matrixStack, IVertexBuilder buffer, List<BakedQuad> quads, int light, int overlay, float r, float g, float b) {
-        MatrixStack.Entry entry = matrixStack.getLast();
-
+    
+    private static void renderQuads(BufferBuilder renderer, List<BakedQuad> quads, float r, float g, float b, float a) {
         for (BakedQuad bakedquad : quads) {
-            buffer.addVertexData(entry, bakedquad, r, g, b, light, overlay, true);
+            renderer.addVertexData(bakedquad.getVertexData());
+            
+            if (bakedquad.hasTintIndex()) {
+                for (int i = 1; i <= 4; ++i) {
+                    renderer.putColorRGBA(renderer.getColorIndex(i), (int)(r * 255), (int)(g * 255), (int)(b * 255), (int)(a * 255));
+                }
+            } else {
+                for (int i = 1; i <= 4; ++i) {
+                    renderer.putColorRGBA(renderer.getColorIndex(i), 255, 255, 255, (int)(a * 255));
+                }
+            }
+            
+            renderer.putNormal(0.0F, 0.0F, 1.0F);
         }
     }
-
-    public static void renderIconColored(MatrixStack matrixStack, IVertexBuilder buffer, float x, float y, TextureAtlasSprite sprite, float width, float height, float alpha, int color, int light, int overlay) {
+    
+    public static void renderIconColored(float x, float y, TextureAtlasSprite sprite, float width, float height, float alpha, int color) {
+        // Извлекаем цвета из HEX
         int red = color >> 16 & 255;
         int green = color >> 8 & 255;
         int blue = color & 255;
-        Matrix4f mat = matrixStack.getLast().getMatrix();
-        buffer.pos(mat, x, y + height, 0.0F).color(red, green, blue, (int) (alpha * 255.0F)).tex(sprite.getMinU(), sprite.getMaxV()).overlay(overlay).lightmap(light).normal(0.0F, 0.0F, 1.0F).endVertex();
-        buffer.pos(mat, x + width, y + height, 0.0F).color(red, green, blue, (int) (alpha * 255.0F)).tex(sprite.getMaxU(), sprite.getMaxV()).overlay(overlay).lightmap(light).normal(0.0F, 0.0F, 1.0F).endVertex();
-        buffer.pos(mat, x + width, y, 0.0F).color(red, green, blue, (int) (alpha * 255.0F)).tex(sprite.getMaxU(), sprite.getMinV()).overlay(overlay).lightmap(light).normal(0.0F, 0.0F, 1.0F).endVertex();
-        buffer.pos(mat, x, y, 0.0F).color(red, green, blue, (int) (alpha * 255.0F)).tex(sprite.getMinU(), sprite.getMinV()).overlay(overlay).lightmap(light).normal(0.0F, 0.0F, 1.0F).endVertex();
+        int a = (int) (alpha * 255.0F);
+        
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+        
+        buffer.begin(7, DefaultVertexFormats.POSITION_TEX_COLOR);
+        
+        buffer.pos(x, y + height, 0.0D).tex(sprite.getMinU(), sprite.getMaxV()).color(red, green, blue, a).endVertex();
+        buffer.pos(x + width, y + height, 0.0D).tex(sprite.getMaxU(), sprite.getMaxV()).color(red, green, blue, a).endVertex();
+        buffer.pos(x + width, y, 0.0D).tex(sprite.getMaxU(), sprite.getMinV()).color(red, green, blue, a).endVertex();
+        buffer.pos(x, y, 0.0D).tex(sprite.getMinU(), sprite.getMinV()).color(red, green, blue, a).endVertex();
+        
+        tessellator.draw();
+    }
+    
+    public static void drawInnerBlit(int x1, int x2, int y1, int y2, int z, float minU, float maxU, float minV, float maxV) {
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder bufferbuilder = tessellator.getBuffer();
+        
+        bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
+        
+        bufferbuilder.pos(x1, y2, z).tex(minU, maxV).endVertex();
+        bufferbuilder.pos(x2, y2, z).tex(maxU, maxV).endVertex();
+        bufferbuilder.pos(x2, y1, z).tex(maxU, minV).endVertex();
+        bufferbuilder.pos(x1, y1, z).tex(minU, minV).endVertex();
+        
+        tessellator.draw();
     }
 }

@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 public class BlockMechanicalBrewery extends BlockBase {
 
     public static final DirectionShape SHAPE = new DirectionShape(VoxelShapes.or(
-            BlockBase.FRAME_SHAPE,
+            BlockBase.FRAME_SHAPES,
             makeCuboidShape(5, 1, 5, 6, 2, 6),
             makeCuboidShape(5, 1, 10, 6, 2, 11),
             makeCuboidShape(10, 1, 5, 11, 2, 6),
@@ -45,7 +45,7 @@ public class BlockMechanicalBrewery extends BlockBase {
 
     @Nullable
     @Override
-    protected ContainerType<?> getContainerType() {
+    protected ContainerType<?> getContainerSupplier() {
         return Registration.CONTAINER_MECHANICAL_BREWERY.get();
     }
 

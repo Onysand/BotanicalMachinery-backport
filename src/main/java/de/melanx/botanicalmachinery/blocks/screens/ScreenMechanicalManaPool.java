@@ -5,20 +5,20 @@ import de.melanx.botanicalmachinery.blocks.containers.ContainerMechanicalManaPoo
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalManaPool;
 import de.melanx.botanicalmachinery.core.LibResources;
 import de.melanx.botanicalmachinery.helper.RenderHelper;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+
+import java.util.ArrayList;
 
 public class ScreenMechanicalManaPool extends ScreenBase<ContainerMechanicalManaPool> {
-    public ScreenMechanicalManaPool(ContainerMechanicalManaPool container, PlayerInventory inv, ITextComponent titleIn) {
-        super(container, inv, titleIn);
+    public ScreenMechanicalManaPool(ContainerMechanicalManaPool container) {
+        super(container);
     }
 
-    @OnlyIn(Dist.CLIENT)
+    @SideOnly(Side.CLIENT)
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         this.drawDefaultGuiBackgroundLayer(LibResources.MECHANICAL_MANA_POOL_GUI, 81, 37);
-        RenderHelper.renderFadedItem(this, TileMechanicalManaPool.CATALYSTS, this.relX + 53, this.relY + 47);
+        RenderHelper.renderFadedItem(this, new ArrayList<>(TileMechanicalManaPool.CATALYSTS), this.relX + 53, this.relY + 47);
     }
 }

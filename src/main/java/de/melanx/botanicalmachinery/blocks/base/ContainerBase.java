@@ -2,23 +2,19 @@ package de.melanx.botanicalmachinery.blocks.base;
 
 import de.melanx.botanicalmachinery.util.functionalinterface.Function4;
 import de.melanx.botanicalmachinery.util.functionalinterface.Function5;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.inventory.container.Slot;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IWorldPosCallable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.extensions.IForgeContainerType;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * There are some things you need to pay attention to if you want to use this:
@@ -31,7 +27,7 @@ import javax.annotation.Nullable;
  */
 public abstract class ContainerBase<T extends TileEntity> extends Container {
     public final T tile;
-    public final PlayerEntity player;
+    public final EntityPlayer player;
     public final IItemHandler playerInventory;
     public final BlockPos pos;
     public final World world;
@@ -40,8 +36,8 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
     public final int firstOutputSlot;
     public final int firstInventorySlot;
 
-    protected ContainerBase(@Nullable ContainerType<?> type, int windowId, World world, BlockPos pos, PlayerInventory playerInventory, PlayerEntity player, int firstOutputSlot, int firstInventorySlot) {
-        super(type, windowId);
+    protected ContainerBase(World world, BlockPos pos, InventoryPlayer playerInventory, EntityPlayer player, int firstOutputSlot, int firstInventorySlot) {
+        super();
         // This should always work. If it doesn't something is very wrong.
         //noinspection unchecked
         this.tile = (T) world.getTileEntity(pos);
@@ -54,9 +50,9 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
     }
 
     @Override
-    public boolean canInteractWith(@Nonnull PlayerEntity player) {
+    public boolean canInteractWith(@Nonnull EntityPlayer player) {
         //noinspection ConstantConditions
-        return isWithinUsableDistance(IWorldPosCallable.of(this.tile.getWorld(), this.tile.getPos()), this.player, this.tile.getBlockState().getBlock());
+        return !tile.isInvalid() && player.getDistanceSq(pos.add(0.5, 0.5, 0.5)) <= 64;
     }
 
     protected void layoutPlayerInventorySlots(int leftCol, int topRow) {
@@ -84,7 +80,7 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
 
     protected int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx, Function4<IItemHandler, Integer, Integer, Integer, Slot> slotFactory) {
         for (int i = 0; i < amount; i++) {
-            this.addSlot(slotFactory.apply(handler, index, x, y));
+            this.addSlotToContainer(slotFactory.apply(handler, index, x, y));
             x += dx;
             index++;
         }
@@ -101,7 +97,7 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
 
     @Nonnull
     @Override
-    public ItemStack transferStackInSlot(@Nonnull PlayerEntity player, int index) {
+    public ItemStack transferStackInSlot(@Nonnull EntityPlayer player, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.inventorySlots.get(index);
         if (slot != null && slot.getHasStack()) {
@@ -165,7 +161,7 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
 
                 Slot slot = this.inventorySlots.get(i);
                 ItemStack itemstack = slot.getStack();
-                if (!itemstack.isEmpty() && areItemsAndTagsEqual(stack, itemstack) && slot.isItemValid(stack)) {
+                if (!itemstack.isEmpty() && ItemStack.areItemStackTagsEqual(stack, itemstack) && slot.isItemValid(stack)) {
                     int j = itemstack.getCount() + stack.getCount();
                     int maxSize = Math.min(slot.getSlotStackLimit(), stack.getMaxStackSize());
                     if (j <= maxSize) {
@@ -209,9 +205,9 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
                 ItemStack itemstack1 = slot1.getStack();
                 if (itemstack1.isEmpty() && slot1.isItemValid(stack)) {
                     if (stack.getCount() > slot1.getSlotStackLimit()) {
-                        slot1.putStack(stack.split(slot1.getSlotStackLimit()));
+                        slot1.putStack(stack.splitStack(slot1.getSlotStackLimit()));
                     } else {
-                        slot1.putStack(stack.split(stack.getCount()));
+                        slot1.putStack(stack.splitStack(stack.getCount()));
                     }
 
                     slot1.onSlotChanged();
@@ -228,13 +224,5 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
         }
 
         return flag;
-    }
-
-    public static <T extends Container> ContainerType<T> createContainerType(Function5<Integer, World, BlockPos, PlayerInventory, PlayerEntity, T> constructor) {
-        return IForgeContainerType.create((windowId1, inv, data) -> {
-            BlockPos pos1 = data.readBlockPos();
-            World world1 = inv.player.getEntityWorld();
-            return constructor.apply(windowId1, world1, pos1, inv, inv.player);
-        });
     }
 }

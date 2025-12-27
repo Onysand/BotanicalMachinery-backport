@@ -2,14 +2,14 @@ package de.melanx.botanicalmachinery.gui;
 
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.core.LibResources;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.GuiScreen;
 
 /*
  * This class is inspired by Cyclics EnergyBar
  */
 public class ManaBar {
 
-    private final Screen parent;
+    private final GuiScreen parent;
     public int x = 153;
     public int y = 15;
     public final int capacity;
@@ -18,7 +18,7 @@ public class ManaBar {
     public int guiLeft;
     public int guiTop;
 
-    public ManaBar(Screen parent, int capacity) {
+    public ManaBar(GuiScreen parent, int capacity) {
         this.parent = parent;
         this.capacity = capacity;
     }
@@ -31,20 +31,20 @@ public class ManaBar {
     public void draw(float mana) {
         int relX;
         int relY;
-        this.parent.getMinecraft().getTextureManager().bindTexture(LibResources.MANA_BAR);
+        this.parent.mc.getTextureManager().bindTexture(LibResources.MANA_BAR);
         relX = this.guiLeft + this.x;
         relY = this.guiTop + this.y;
-        Screen.blit(relX, relY, 0, 0, this.width, this.height, this.width, this.height);
-        this.parent.getMinecraft().getTextureManager().bindTexture(LibResources.MANA_BAR_CURRENT);
+        GuiScreen.drawModalRectWithCustomSizedTexture(relX, relY, 0, 0, this.width, this.height, this.width, this.height);
+        this.parent.mc.getTextureManager().bindTexture(LibResources.MANA_BAR_CURRENT);
         relX += 1;
         relY += this.height - 1;
         float pct = Math.min(mana / this.capacity, 1.0F);
-        Screen.blit(relX, relY, 0, 0, this.width - 2, (int) -((this.height - 2) * pct), this.width - 2, this.height - 2);
+        GuiScreen.drawModalRectWithCustomSizedTexture(relX, relY, 0, 0, this.width - 2, (int) -((this.height - 2) * pct), this.width - 2, this.height - 2);
     }
 
     public void renderHoveredToolTip(int mouseX, int mouseY, int mana) {
         if (this.isMouseOver(mouseX, mouseY) && ClientConfig.numericalMana.get()) {
-            this.parent.renderTooltip(mana + " / " + this.capacity + " Mana", mouseX, mouseY);
+            this.parent.drawHoveringText(mana + " / " + this.capacity + " Mana", mouseX, mouseY);
         }
     }
 }

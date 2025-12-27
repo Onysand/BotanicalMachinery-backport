@@ -35,7 +35,7 @@ public class BlockManaBattery extends BlockBase {
 
     @Nullable
     @Override
-    protected ContainerType<?> getContainerType() {
+    protected ContainerType<?> getContainerSupplier() {
         return Registration.CONTAINER_MANA_BATTERY.get();
     }
 

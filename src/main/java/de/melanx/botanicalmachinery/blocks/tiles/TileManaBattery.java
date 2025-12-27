@@ -27,7 +27,7 @@ public class TileManaBattery extends TileBase {
     private final BaseItemStackHandler inventory = new BaseItemStackHandler(2, slot -> this.sendPacket = true, this::isValidStack);
 
     public TileManaBattery() {
-        super(Registration.TILE_MANA_BATTERY.get(), ServerConfig.capacityManaBattery.get());
+        super(Registration.TILE_MANA_BATTERY, ServerConfig.capacityManaBattery.get());
     }
 
     @Nonnull
@@ -138,7 +138,7 @@ public class TileManaBattery extends TileBase {
 
     @Override
     protected LazyOptional<IItemHandlerModifiable> createHandler(Supplier<IItemHandlerModifiable> inventory) {
-        return ItemStackHandlerWrapper.createLazy(inventory, slot -> {
+        return ItemStackHandlerWrapper.createFromSup(inventory, slot -> {
             ItemStack minus = inventory.get().getStackInSlot(0);
             ItemStack plus = inventory.get().getStackInSlot(1);
             if (slot == 0 && minus.getItem() instanceof IManaItem) {

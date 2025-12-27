@@ -5,20 +5,12 @@ import de.melanx.botanicalmachinery.config.ServerConfig;
 import de.melanx.botanicalmachinery.core.Registration;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
-import net.minecraft.block.BlockState;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.util.Direction;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ITickable;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -26,17 +18,14 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 import vazkii.botania.api.internal.VanillaPacketDispatcher;
-import vazkii.botania.api.recipe.IPureDaisyRecipe;
-import vazkii.botania.client.fx.WispParticleData;
 import vazkii.botania.common.block.tile.TileMod;
-import vazkii.botania.common.crafting.ModRecipeTypes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TileMechanicalDaisy extends TileMod implements ITickableTileEntity {
+public class TileMechanicalDaisy extends TileMod implements TileEntity, ITickable {
 
     private int ticksToNextUpdate = 5;
     // Negative value = recipe completed
@@ -55,7 +44,7 @@ public class TileMechanicalDaisy extends TileMod implements ITickableTileEntity 
     }
 
     @Override
-    public void tick() {
+    public void update() {
         boolean hasSpawnedParticles = false;
         for (int i = 0; i < 8; i++) {
             IPureDaisyRecipe recipe = this.getRecipe(i);

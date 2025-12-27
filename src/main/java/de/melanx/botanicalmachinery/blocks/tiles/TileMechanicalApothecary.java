@@ -21,6 +21,7 @@ import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
@@ -48,7 +49,7 @@ public class TileMechanicalApothecary extends TileMod implements ITickableTileEn
     public static final int WORKING_DURATION = 20;
     public static final int FLUID_CAPACITY = 8000;
 
-    private final LazyOptional<IItemHandlerModifiable> handler = ItemStackHandlerWrapper.createLazy(this::getInventory);
+    private final LazyOptional<IItemHandlerModifiable> handler = ItemStackHandlerWrapper.createFromSup(this::getInventory);
     private final BaseItemStackHandler inventory = new BaseItemStackHandler(21, slot -> {
         this.update = true;
         this.sendPacket = true;

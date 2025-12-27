@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 public class BlockMechanicalApothecary extends Block {
 
     public static final DirectionShape SHAPE = new DirectionShape(VoxelShapes.or(
-            BlockBase.FRAME_SHAPE,
+            BlockBase.FRAME_SHAPES,
             makeCuboidShape(3, 1, 3, 13, 2, 13),
             makeCuboidShape(4, 2, 4, 12, 3, 12),
             makeCuboidShape(6, 3, 6, 10, 8, 10),

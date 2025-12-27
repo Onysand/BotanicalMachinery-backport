@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 public class BlockIndustrialAgglomerationFactory extends BlockBase {
 
     public static final DirectionShape SHAPE = new DirectionShape(VoxelShapes.or(
-            BlockBase.FRAME_SHAPE,
+            BlockBase.FRAME_SHAPES,
             makeCuboidShape(2.6, 0, 2.6, 13.4, 4.6, 13.4),
             makeCuboidShape(6.2, 0, 6.2, 9.8, 5.3, 9.8)
     ));
@@ -38,7 +38,7 @@ public class BlockIndustrialAgglomerationFactory extends BlockBase {
 
     @Nullable
     @Override
-    protected ContainerType<?> getContainerType() {
+    protected ContainerType<?> getContainerSupplier() {
         return Registration.CONTAINER_INDUSTRIAL_AGGLOMERATION_FACTORY.get();
     }
 

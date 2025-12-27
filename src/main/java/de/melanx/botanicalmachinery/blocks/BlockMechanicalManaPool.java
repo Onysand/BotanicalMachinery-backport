@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 public class BlockMechanicalManaPool extends BlockBase {
 
     public static final DirectionShape SHAPE = new DirectionShape(VoxelShapes.or(
-            BlockBase.FRAME_SHAPE,
+            BlockBase.FRAME_SHAPES,
             makeCuboidShape(2, 1, 2, 14, 1.1, 14),
             makeCuboidShape(2, 1, 13, 14, 6, 14),
             makeCuboidShape(2, 1, 2, 14, 6, 3),
@@ -41,7 +41,7 @@ public class BlockMechanicalManaPool extends BlockBase {
 
     @Nullable
     @Override
-    protected ContainerType<?> getContainerType() {
+    protected ContainerType<?> getContainerSupplier() {
         return Registration.CONTAINER_MECHANICAL_MANA_POOL.get();
     }
 
