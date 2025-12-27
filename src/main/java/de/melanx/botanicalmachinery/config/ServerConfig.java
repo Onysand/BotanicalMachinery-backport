@@ -1,72 +1,73 @@
 package de.melanx.botanicalmachinery.config;
 
-import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-import com.electronwill.nightconfig.core.io.WritingMode;
 import de.melanx.botanicalmachinery.BotanicalMachinery;
-import de.melanx.botanicalmachinery.blocks.tiles.TileAlfheimMarket;
-import de.melanx.botanicalmachinery.blocks.tiles.TileIndustrialAgglomerationFactory;
-import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalBrewery;
-import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalRunicAltar;
-import net.minecraftforge.common.ForgeConfigSpec;
-
-import java.nio.file.Path;
+import net.minecraftforge.common.config.Configuration;
+import java.io.File;
 
 public class ServerConfig {
-    public static final ForgeConfigSpec SERVER_CONFIG;
-    private static final ForgeConfigSpec.Builder SERVER_BUILDER = new ForgeConfigSpec.Builder();
-
-    static {
-        init(SERVER_BUILDER);
-        SERVER_CONFIG = SERVER_BUILDER.build();
+    public static Configuration config;
+    
+    // Multipliers
+    public static int multiplierAlfheimMarket;
+    public static int multiplierAgglomerationFactory;
+    public static int multiplierManaPool;
+    public static int multiplierRunicAltar;
+    public static int multiplierDaisy;
+    public static int multiplierBrewery;
+    public static int multiplierApothecary;
+    
+    // Recipe Costs
+    public static int alfheimMarketRecipeCost;
+    
+    // Capacities
+    public static int capacityAlfheimMarket;
+    public static int capacityAgglomerationFactory;
+    public static int capacityManaPool;
+    public static int capacityRunicAltar;
+    public static int capacityBrewery;
+    public static int capacityManaBattery;
+    
+    public static void init(File file) {
+        config = new Configuration(file);
+        syncConfig();
     }
-
-    public static ForgeConfigSpec.IntValue multiplierAlfheimMarket;
-    public static ForgeConfigSpec.IntValue multiplierAgglomerationFactory;
-    public static ForgeConfigSpec.IntValue multiplierManaPool;
-    public static ForgeConfigSpec.IntValue multiplierRunicAltar;
-    public static ForgeConfigSpec.IntValue multiplierDaisy;
-    public static ForgeConfigSpec.IntValue multiplierBrewery;
-    public static ForgeConfigSpec.IntValue multiplierApothecary;
-
-    public static ForgeConfigSpec.IntValue alfheimMarketRecipeCost;
-
-    public static ForgeConfigSpec.IntValue capacityAlfheimMarket;
-    public static ForgeConfigSpec.IntValue capacityAgglomerationFactory;
-    public static ForgeConfigSpec.IntValue capacityManaPool;
-    public static ForgeConfigSpec.IntValue capacityRunicAltar;
-    public static ForgeConfigSpec.IntValue capacityBrewery;
-    public static ForgeConfigSpec.IntValue capacityManaBattery;
-
-    public static void init(ForgeConfigSpec.Builder builder) {
-        builder.push("working-duration-multiplier");
-        builder.comment("The default duration multiplied with this will be the used working duration.");
-        multiplierAlfheimMarket = builder.defineInRange("alfheim-market", 1, 1, TileAlfheimMarket.MAX_MANA_PER_TICK);
-        multiplierAgglomerationFactory = builder.defineInRange("industrial-agglomeration-factory", 1, 1, TileIndustrialAgglomerationFactory.MAX_MANA_PER_TICK);
-        multiplierManaPool = builder.defineInRange("mechanical-mana-pool", 1, 1, Integer.MAX_VALUE);
-        multiplierRunicAltar = builder.defineInRange("mechanical-runic-altar", 1, 1, TileMechanicalRunicAltar.MAX_MANA_PER_TICK);
-        multiplierDaisy = builder.defineInRange("mechanical-daisy", 3, 1, Integer.MAX_VALUE);
-        multiplierBrewery = builder.defineInRange("mechanical-brewery", 1, 1, TileMechanicalBrewery.MAX_MANA_PER_TICK);
-        multiplierApothecary = builder.defineInRange("mechanical-apothecary", 1, 1, Integer.MAX_VALUE);
-        builder.pop();
-
-        alfheimMarketRecipeCost = builder.comment("The amount of mana used in alfheim market to trade items [Default: 500]")
-                .defineInRange("alfheim-market.recipe-cost", 500, 1, Integer.MAX_VALUE);
-
-        builder.push("max-mana-capacity");
-        builder.comment("The default amount of mana capacity in each machine.");
-        capacityAlfheimMarket = builder.defineInRange("alfheim-market", 100_000, 1, Integer.MAX_VALUE);
-        capacityAgglomerationFactory = builder.defineInRange("industrial-agglomeration-factory", 1_000_000, 500_000, Integer.MAX_VALUE);
-        capacityManaPool = builder.defineInRange("mechanical-mana-pool", 100_000, 1, Integer.MAX_VALUE);
-        capacityRunicAltar = builder.defineInRange("mechanical-runic-altar", 250_000, 1, Integer.MAX_VALUE);
-        capacityBrewery = builder.defineInRange("mechanical-brewery", 100_000, 1, Integer.MAX_VALUE);
-        capacityManaBattery = builder.defineInRange("mana-battery", 10_000_000, 1, Integer.MAX_VALUE);
-        builder.pop();
-    }
-
-    public static void loadConfig(ForgeConfigSpec spec, Path path) {
-        BotanicalMachinery.LOGGER.debug("Loading config file {}", path);
-        final CommentedFileConfig configData = CommentedFileConfig.builder(path).sync().autosave().writingMode(WritingMode.REPLACE).build();
-        configData.load();
-        spec.setConfig(configData);
+    
+    public static void syncConfig() {
+        try {
+            config.load();
+            
+            // --- Working Duration Multipliers ---
+            String catMultipliers = "working-duration-multiplier";
+            config.setCategoryComment(catMultipliers, "The default duration multiplied with this will be the used working duration.");
+            
+            multiplierAlfheimMarket = config.getInt("alfheim-market", catMultipliers, 1, 1, Integer.MAX_VALUE, "");
+            multiplierAgglomerationFactory = config.getInt("industrial-agglomeration-factory", catMultipliers, 1, 1, Integer.MAX_VALUE, "");
+            multiplierManaPool = config.getInt("mechanical-mana-pool", catMultipliers, 1, 1, Integer.MAX_VALUE, "");
+            multiplierRunicAltar = config.getInt("mechanical-runic-altar", catMultipliers, 1, 1, Integer.MAX_VALUE, "");
+            multiplierDaisy = config.getInt("mechanical-daisy", catMultipliers, 3, 1, Integer.MAX_VALUE, "");
+            multiplierBrewery = config.getInt("mechanical-brewery", catMultipliers, 1, 1, Integer.MAX_VALUE, "");
+            multiplierApothecary = config.getInt("mechanical-apothecary", catMultipliers, 1, 1, Integer.MAX_VALUE, "");
+            
+            // --- Recipe Costs ---
+            alfheimMarketRecipeCost = config.getInt("recipe-cost", "alfheim-market", 500, 1, Integer.MAX_VALUE, "The amount of mana used in alfheim market to trade items");
+            
+            // --- Max Mana Capacity ---
+            String catCapacity = "max-mana-capacity";
+            config.setCategoryComment(catCapacity, "The default amount of mana capacity in each machine.");
+            
+            capacityAlfheimMarket = config.getInt("alfheim-market", catCapacity, 100000, 1, Integer.MAX_VALUE, "");
+            capacityAgglomerationFactory = config.getInt("industrial-agglomeration-factory", catCapacity, 1000000, 500000, Integer.MAX_VALUE, "");
+            capacityManaPool = config.getInt("mechanical-mana-pool", catCapacity, 100000, 1, Integer.MAX_VALUE, "");
+            capacityRunicAltar = config.getInt("mechanical-runic-altar", catCapacity, 250000, 1, Integer.MAX_VALUE, "");
+            capacityBrewery = config.getInt("mechanical-brewery", catCapacity, 100000, 1, Integer.MAX_VALUE, "");
+            capacityManaBattery = config.getInt("mana-battery", catCapacity, 10000000, 1, Integer.MAX_VALUE, "");
+            
+        } catch (Exception e) {
+             BotanicalMachinery.LOGGER.error("Failed to load server config", e);
+        } finally {
+            if (config.hasChanged()) {
+                config.save();
+            }
+        }
     }
 }

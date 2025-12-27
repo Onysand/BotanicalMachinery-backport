@@ -1,54 +1,52 @@
 package de.melanx.botanicalmachinery.config;
 
-import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-import com.electronwill.nightconfig.core.io.WritingMode;
 import de.melanx.botanicalmachinery.BotanicalMachinery;
-import net.minecraftforge.common.ForgeConfigSpec;
-
-import java.nio.file.Path;
+import net.minecraftforge.common.config.Configuration;
+import java.io.File;
 
 public class ClientConfig {
-    public static final ForgeConfigSpec CLIENT_CONFIG;
-    private static final ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
-
-    static {
-        init(CLIENT_BUILDER);
-        CLIENT_CONFIG = CLIENT_BUILDER.build();
+    
+    public static boolean numericalMana;
+    public static boolean everything;
+    public static boolean alfheimMarket;
+    public static boolean agglomerationFactory;
+    public static boolean apothecary;
+    public static boolean brewery;
+    public static boolean daisy;
+    public static boolean manaPool;
+    public static boolean runicAltar;
+    
+    private static Configuration config;
+    
+    public static void init(File file) {
+        config = new Configuration(file);
+        syncConfig();
     }
-
-    public static ForgeConfigSpec.BooleanValue numericalMana;
-
-    public static ForgeConfigSpec.BooleanValue everything;
-    public static ForgeConfigSpec.BooleanValue alfheimMarket;
-    public static ForgeConfigSpec.BooleanValue agglomerationFactory;
-    public static ForgeConfigSpec.BooleanValue apothecary;
-    public static ForgeConfigSpec.BooleanValue brewery;
-    public static ForgeConfigSpec.BooleanValue daisy;
-    public static ForgeConfigSpec.BooleanValue manaPool;
-    public static ForgeConfigSpec.BooleanValue runicAltar;
-
-    public static void init(ForgeConfigSpec.Builder builder) {
-        numericalMana = builder.comment("Should mana in GUIs be displayed with numbers?")
-                .define("numericalMana", true);
-
-        builder.push("advanced-rendering");
-        builder.comment("Should the machine render its specific rendering if items are in the machine?");
-        everything = builder.comment("If you turn this off, the special rendering is disabled for all machines and ignores the other config options")
-                .define("all", true);
-        alfheimMarket = builder.define("alfheim-market", true);
-        agglomerationFactory = builder.define("industrial-agglomeration-factory", true);
-        apothecary = builder.define("mechanical-apothecary", true);
-        brewery = builder.define("mechanical-brewery", true);
-        daisy = builder.define("mechanical-daisy", true);
-        manaPool = builder.define("mechanical-mana-pool", true);
-        runicAltar = builder.define("mechanical-runic-altar", true);
-        builder.pop();
-    }
-
-    public static void loadConfig(ForgeConfigSpec spec, Path path) {
-        BotanicalMachinery.LOGGER.debug("Loading config file {}", path);
-        final CommentedFileConfig configData = CommentedFileConfig.builder(path).sync().autosave().writingMode(WritingMode.REPLACE).build();
-        configData.load();
-        spec.setConfig(configData);
+    
+    public static void syncConfig() {
+        try {
+            config.load();
+            
+            numericalMana = config.getBoolean("numericalMana", Configuration.CATEGORY_GENERAL, true, "Should mana in GUIs be displayed with numbers?");
+            
+            String category = "advanced-rendering";
+            config.setCategoryComment(category, "Should the machine render its specific rendering if items are in the machine?");
+            
+            everything = config.getBoolean("all", category, true, "If you turn this off, the special rendering is disabled for all machines and ignores the other config options");
+            alfheimMarket = config.getBoolean("alfheim-market", category, true, "Enable special rendering for Alfheim Market");
+            agglomerationFactory = config.getBoolean("industrial-agglomeration-factory", category, true, "Enable special rendering for Agglomeration Factory");
+            apothecary = config.getBoolean("mechanical-apothecary", category, true, "Enable special rendering for Apothecary");
+            brewery = config.getBoolean("mechanical-brewery", category, true, "Enable special rendering for Brewery");
+            daisy = config.getBoolean("mechanical-daisy", category, true, "Enable special rendering for Daisy");
+            manaPool = config.getBoolean("mechanical-mana-pool", category, true, "Enable special rendering for Mana Pool");
+            runicAltar = config.getBoolean("mechanical-runic-altar", category, true, "Enable special rendering for Runic Altar");
+            
+        } catch (Exception e) {
+             BotanicalMachinery.LOGGER.error("Could not load client config!", e);
+        } finally {
+            if (config.hasChanged()) {
+                config.save();
+            }
+        }
     }
 }
