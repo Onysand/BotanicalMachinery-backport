@@ -2,15 +2,12 @@ package de.melanx.botanicalmachinery.blocks.base;
 
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 
 public abstract class HorizontalRotatedTesr<T extends TileEntity> extends TileEntitySpecialRenderer<T> {
 
-    protected TileEntityRendererDispatcher rendererDispatcher = TileEntityRendererDispatcher.instance;
-    
     public HorizontalRotatedTesr() {
         super();
     }

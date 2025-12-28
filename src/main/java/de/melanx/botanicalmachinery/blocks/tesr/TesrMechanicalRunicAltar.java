@@ -45,7 +45,6 @@ public class TesrMechanicalRunicAltar extends HorizontalRotatedTesr<TileMechanic
             GlStateManager.rotate(-(ClientTickHandler.ticksInGame + partialTicks), 0, 1, 0);
             GlStateManager.translate(-0.5, 0, -0.5);
 
-            //noinspection deprecation
             Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlock(state, tile.getPos(), tile.getWorld(), buffer);
 
             GlStateManager.popMatrix();

@@ -5,7 +5,6 @@ import de.melanx.botanicalmachinery.blocks.tiles.TileIndustrialAgglomerationFact
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.helper.RenderHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
@@ -13,8 +12,6 @@ import net.minecraft.item.ItemStack;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.core.handler.MiscellaneousIcons;
 import vazkii.botania.client.core.helper.IconHelper;
-
-import javax.annotation.Nonnull;
 
 public class TesrIndustrialAgglomerationFactory extends HorizontalRotatedTesr<TileIndustrialAgglomerationFactory> {
 
