@@ -26,6 +26,7 @@ public class ServerConfig {
     public static int capacityRunicAltar;
     public static int capacityBrewery;
     public static int capacityManaBattery;
+    public static int capacityFluidDaisy;
     
     public static void init(File file) {
         config = new Configuration(file);
@@ -55,12 +56,13 @@ public class ServerConfig {
             String catCapacity = "max-mana-capacity";
             config.setCategoryComment(catCapacity, "The default amount of mana capacity in each machine.");
             
-            capacityAlfheimMarket = config.getInt("alfheim-market", catCapacity, 100000, 1, Integer.MAX_VALUE, "");
-            capacityAgglomerationFactory = config.getInt("industrial-agglomeration-factory", catCapacity, 1000000, 500000, Integer.MAX_VALUE, "");
-            capacityManaPool = config.getInt("mechanical-mana-pool", catCapacity, 100000, 1, Integer.MAX_VALUE, "");
-            capacityRunicAltar = config.getInt("mechanical-runic-altar", catCapacity, 250000, 1, Integer.MAX_VALUE, "");
-            capacityBrewery = config.getInt("mechanical-brewery", catCapacity, 100000, 1, Integer.MAX_VALUE, "");
-            capacityManaBattery = config.getInt("mana-battery", catCapacity, 10000000, 1, Integer.MAX_VALUE, "");
+            capacityAlfheimMarket = config.getInt("alfheim-market", catCapacity, 100_000, 1, Integer.MAX_VALUE, "");
+            capacityAgglomerationFactory = config.getInt("industrial-agglomeration-factory", catCapacity, 1_000_000, 500_000, Integer.MAX_VALUE, "");
+            capacityManaPool = config.getInt("mechanical-mana-pool", catCapacity, 100_000, 1, Integer.MAX_VALUE, "");
+            capacityRunicAltar = config.getInt("mechanical-runic-altar", catCapacity, 250_000, 1, Integer.MAX_VALUE, "");
+            capacityBrewery = config.getInt("mechanical-brewery", catCapacity, 100_000, 1, Integer.MAX_VALUE, "");
+            capacityManaBattery = config.getInt("mana-battery", catCapacity, 10_000_000, 1, Integer.MAX_VALUE, "");
+            capacityFluidDaisy = config.getInt("mechanical-daisy", catCapacity, 10_000, 1_000, Integer.MAX_VALUE, "");
             
         } catch (Exception e) {
              BotanicalMachinery.LOGGER.error("Failed to load server config", e);

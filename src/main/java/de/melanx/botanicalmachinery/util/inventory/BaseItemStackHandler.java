@@ -1,7 +1,6 @@
 package de.melanx.botanicalmachinery.util.inventory;
 
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -134,10 +133,6 @@ public class BaseItemStackHandler extends ItemStackHandler {
             }
         }
         return true;
-    }
-
-    public IInventory toIInventory() {
-        return new Inventory(this.stacks.toArray(new ItemStack[0]));
     }
 
     public IItemHandlerModifiable getUnrestricted() {

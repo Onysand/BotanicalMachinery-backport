@@ -5,17 +5,14 @@ import de.melanx.botanicalmachinery.blocks.base.ScreenBase;
 import de.melanx.botanicalmachinery.blocks.containers.ContainerMechanicalDaisy;
 import de.melanx.botanicalmachinery.core.LibResources;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.inventory.Slot;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.fluids.FluidStack;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
 public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> {
@@ -29,13 +26,13 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         this.drawDefaultBackground();
-        //noinspection deprecation
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        //noinspection ConstantConditions
         this.mc.getTextureManager().bindTexture(LibResources.MECHANICAL_DAISY_GUI);
         int relX = (this.width - this.xSize) / 2;
         int relY = (this.height - this.ySize) / 2;
         this.drawTexturedModalRect(relX, relY, 0, 0, this.xSize, this.ySize);
+        
+        this.drawFluidInSlots();
     }
 
     @Override
@@ -47,38 +44,12 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
         GlStateManager.color(1, 1, 1, 1);
         GlStateManager.enableBlend();
         TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
-        TextureAtlasSprite sprite = textureMap.getAtlasSprite(PURE_DAISY_TEXTURE.getPath());
+        TextureAtlasSprite sprite = textureMap.getAtlasSprite(PURE_DAISY_TEXTURE.getResourcePath());
         this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
         this.drawTexturedModalRect(12, 16, sprite, 48, 48);
         GlStateManager.disableBlend();
         GlStateManager.popMatrix();
         this.renderHoveredToolTip(mouseX - this.guiLeft, mouseY - this.guiTop);
-    }
-    
-//    @Override
-    protected void drawSlot(@Nonnull Slot slot) {
-        if (slot instanceof ContainerMechanicalDaisy.ItemAndFluidSlot) {
-            FluidStack stack = ((ContainerMechanicalDaisy.ItemAndFluidSlot) slot).inventory.getFluidInTank(slot.slotNumber);
-            if (stack.getFluid() != null && stack.amount > 0) {
-                int maxAmount = ((ContainerMechanicalDaisy.ItemAndFluidSlot) slot).inventory.getTankCapacity(slot.slotNumber);
-                int yHeight = Math.round(stack.amount / (float) maxAmount) * 16;
-                int yPos = slot.yPos + 16 - yHeight;
-
-                ResourceLocation still = stack.getFluid().getStill(stack);
-                TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
-                TextureAtlasSprite sprite = textureMap.getAtlasSprite(still.getPath());
-                this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-                int fluidColor = stack.getFluid().getColor(stack);
-                float fluidColorA = ((fluidColor >> 24) & 0xFF) / 255f;
-                float fluidColorR = ((fluidColor >> 16) & 0xFF) / 255f;
-                float fluidColorG = ((fluidColor >> 8) & 0xFF) / 255f;
-                float fluidColorB = ((fluidColor) & 0xFF) / 255f;
-                GlStateManager.color(fluidColorR, fluidColorG, fluidColorB, fluidColorA);
-                this.drawTexturedModalRect(slot.xPos, yPos, sprite, 16, yHeight);
-                GlStateManager.color(1, 1, 1, 1);
-            }
-        }
-//        super.drawSlot(slot);
     }
 
     @Override
@@ -99,5 +70,37 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
             }
         }
         super.renderHoveredToolTip(mouseX, mouseY);
+    }
+    
+    private void drawFluidInSlots() {
+        this.inventorySlots.inventorySlots.forEach(slot -> {
+            if (!(slot instanceof ContainerMechanicalDaisy.ItemAndFluidSlot)) return;
+            
+            ContainerMechanicalDaisy.ItemAndFluidSlot fs = ((ContainerMechanicalDaisy.ItemAndFluidSlot) slot);
+            FluidStack stack = fs.inventory.getFluidInTank(fs.slotNumber);
+            if (stack == null || stack.amount <= 0) return;
+            
+            int capacity = fs.inventory.getTankCapacity();
+            int height = (int) ((stack.amount / (float) capacity) * 16);
+            if (height <= 0) return;
+            
+            TextureAtlasSprite sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(stack.getFluid().getStill(stack).toString());
+            this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+            
+            int color = stack.getFluid().getColor();
+            float r = ((color >> 16) & 0xFF) / 255f;
+            float g = ((color >> 8) & 0xFF) / 255f;
+            float b = (color & 0xFF) / 255f;
+            float a = ((color >> 24) & 0xFF) / 255f;
+            
+            GlStateManager.color(r, g, b, a);
+            
+            int x = this.guiLeft + slot.xPos;
+            int y = this.guiTop + slot.yPos + 16 - height;
+            
+            this.drawTexturedModalRect(x, y, sprite, 16, height);
+            
+            GlStateManager.color(1, 1, 1, 1);
+        });
     }
 }

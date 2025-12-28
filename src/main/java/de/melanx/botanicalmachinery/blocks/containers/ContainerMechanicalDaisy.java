@@ -4,17 +4,17 @@ import de.melanx.botanicalmachinery.blocks.base.ContainerBase;
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalDaisy;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.ClickType;
+import net.minecraft.inventory.Slot;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.SlotItemHandler;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy> {
 
@@ -35,43 +35,17 @@ public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy>
 
         this.layoutPlayerInventorySlots(8, 84);
     }
-
+    
     @Nonnull
     @Override
-    public ItemStack slotClick(int slot, int dragType, @Nonnull ClickType clickType, @Nonnull PlayerEntity player) {
+    public ItemStack slotClick(int slot, int dragType, @Nonnull ClickType clickType, @Nonnull EntityPlayer player) {
         if (clickType == ClickType.PICKUP && slot < 8 && !player.inventory.getItemStack().isEmpty() && player.inventory.getItemStack().getCount() == 1) {
             ItemStack inMouse = player.inventory.getItemStack();
 
-            //noinspection ConstantConditions
-            @Nullable
-            IFluidHandlerItem fluidCap = inMouse.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).orElse(null);
-
-            //noinspection ConstantConditions
-            if (inMouse.getItem() instanceof BlockItem || fluidCap == null || fluidCap.getTanks() != 1) {
+            if (inMouse.getItem() instanceof ItemBlock) {
                 return super.slotClick(slot, dragType, clickType, player);
             }
 
-            if (fluidCap.getFluidInTank(0).isEmpty()) {
-                // Pick up the fluid
-                if (!this.inventory.getFluidInTank(slot).isEmpty()) {
-                    int transferred = fluidCap.fill(this.inventory.getFluidInTank(slot).copy(), IFluidHandler.FluidAction.EXECUTE);
-                    this.inventory.getFluidInTank(slot).shrink(transferred);
-                    if (this.inventory.getFluidInTank(slot).getAmount() <= 0) {
-                        this.inventory.setStackInSlot(slot, FluidStack.EMPTY);
-                    }
-                }
-            } else {
-                // Fill the fluid
-                if (this.inventory.getFluidInTank(slot).isEmpty() && this.inventory.getStackInSlot(slot).isEmpty()) {
-                    FluidStack maxDrain = fluidCap.drain(this.inventory.getTankCapacity(slot), IFluidHandler.FluidAction.SIMULATE);
-                    if (this.inventory.isFluidValid(slot, maxDrain)) {
-                        fluidCap.drain(maxDrain, IFluidHandler.FluidAction.EXECUTE);
-                        this.inventory.setStackInSlot(slot, maxDrain);
-                    }
-                }
-            }
-            if (!player.isCreative())
-                inMouse = fluidCap.getContainer().copy();
             this.detectAndSendChanges();
             player.inventory.setItemStack(inMouse);
             return inMouse;
@@ -79,9 +53,10 @@ public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy>
         return super.slotClick(slot, dragType, clickType, player);
     }
 
+    
     @Nonnull
     @Override
-    public ItemStack transferStackInSlot(@Nonnull PlayerEntity player, int index) {
+    public ItemStack transferStackInSlot(@Nonnull EntityPlayer player, int index) {
         ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.inventorySlots.get(index);
         if (slot != null && slot.getHasStack()) {
@@ -98,17 +73,10 @@ public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy>
                 }
 
                 slot.onSlotChange(stack, itemstack);
-            } else {
-                //noinspection ConstantConditions
-                IFluidHandlerItem fluidCap = stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).orElse(null);
-                //noinspection ConstantConditions
-                if (fluidCap != null && fluidCap.getTanks() == 1) {
-                    this.getSlot(index).putStack(this.tryToDepositFluid(fluidCap));
+            } else if (!this.mergeItemStack(stack, 0, 8, false)) {
                     return ItemStack.EMPTY;
-                } else if (!this.mergeItemStack(stack, 0, 8, false)) {
-                    return ItemStack.EMPTY;
-                }
             }
+            
             if (stack.isEmpty()) {
                 slot.putStack(ItemStack.EMPTY);
             } else {
@@ -143,7 +111,7 @@ public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy>
 
                 Slot slot = this.inventorySlots.get(i);
                 ItemStack itemstack = slot.getStack();
-                if (!itemstack.isEmpty() && areItemsAndTagsEqual(stack, itemstack) && slot.isItemValid(stack) && (i >= 8 || this.inventory.getFluidInTank(i).isEmpty())) {
+                if (!itemstack.isEmpty() && areItemsAndTagsEqual(stack, itemstack) && slot.isItemValid(stack) && (i >= 8 || this.inventory.getFluidInTank(i) != null)) {
                     int j = itemstack.getCount() + stack.getCount();
                     int maxSize = Math.min(slot.getSlotStackLimit(), stack.getMaxStackSize());
                     if (j <= maxSize) {
@@ -185,11 +153,11 @@ public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy>
 
                 Slot slot1 = this.inventorySlots.get(i);
                 ItemStack itemstack1 = slot1.getStack();
-                if (itemstack1.isEmpty() && slot1.isItemValid(stack) && (i >= 8 || this.inventory.getFluidInTank(i).isEmpty())) {
+                if (itemstack1.isEmpty() && slot1.isItemValid(stack) && (i >= 8 || this.inventory.getFluidInTank(i) == null)) {
                     if (stack.getCount() > slot1.getSlotStackLimit()) {
-                        slot1.putStack(stack.split(slot1.getSlotStackLimit()));
+                        slot1.putStack(stack.splitStack(slot1.getSlotStackLimit()));
                     } else {
-                        slot1.putStack(stack.split(stack.getCount()));
+                        slot1.putStack(stack.splitStack(stack.getCount()));
                     }
 
                     slot1.onSlotChanged();
@@ -207,24 +175,28 @@ public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy>
 
         return flag;
     }
-
+    
+    private boolean areItemsAndTagsEqual(ItemStack stack, ItemStack itemstack) {
+        return ItemStack.areItemsEqual(stack, itemstack) && ItemStack.areItemStackTagsEqual(stack, itemstack);
+    }
+    
     private ItemStack tryToDepositFluid(IFluidHandlerItem fluidCap) {
         for (int i = 0; i < 8; i++) {
-            if (this.inventory.getStackInSlot(i).isEmpty() && this.inventory.getFluidInTank(i).isEmpty()) {
-                FluidStack maxDrain = fluidCap.drain(this.inventory.getTankCapacity(i), IFluidHandler.FluidAction.SIMULATE);
+            if (this.inventory.getStackInSlot(i).isEmpty() && this.inventory.getFluidInTank(i) == null) {
+                FluidStack maxDrain = fluidCap.drain(this.inventory.getTankCapacity(), false);
                 if (this.inventory.isFluidValid(i, maxDrain)) {
-                    fluidCap.drain(maxDrain, IFluidHandler.FluidAction.EXECUTE);
+                    fluidCap.drain(maxDrain, true);
                     this.inventory.setStackInSlot(i, maxDrain);
                 }
             }
         }
         return fluidCap.getContainer();
     }
-
+    
     public static class ItemAndFluidSlot extends SlotItemHandler {
-
+        
         public final TileMechanicalDaisy.InventoryHandler inventory;
-
+        
         public ItemAndFluidSlot(TileMechanicalDaisy.InventoryHandler inventory, int index, int xPosition, int yPosition) {
             super(inventory, index, xPosition, yPosition);
             this.inventory = inventory;

@@ -48,7 +48,7 @@ public abstract class BlockBase extends Block implements ITileEntityProvider, IW
         if (!worldIn.isRemote) {
             TileEntity te = worldIn.getTileEntity(pos);
             if (te instanceof TileBase) {
-                playerIn.openGui(BotanicalMachinery.instance, ((TileBase) te).getGuiId() , worldIn, pos.getX(), pos.getY(), pos.getZ());
+                playerIn.openGui(BotanicalMachinery.instance, getGuiId() , worldIn, pos.getX(), pos.getY(), pos.getZ());
                 return true;
             }
         }
@@ -62,7 +62,7 @@ public abstract class BlockBase extends Block implements ITileEntityProvider, IW
     
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        return this.getDefaultState().withProperty(FACING, EnumFacing.byHorizontalIndex(meta));
+        return this.getDefaultState().withProperty(FACING, EnumFacing.getHorizontal(meta));
     }
     
     @Override
@@ -86,7 +86,7 @@ public abstract class BlockBase extends Block implements ITileEntityProvider, IW
     }
     
     @Override
-    public BlockRenderLayer getRenderLayer() {
+    public BlockRenderLayer getBlockLayer() {
         return fullCube ? BlockRenderLayer.SOLID : BlockRenderLayer.CUTOUT;
     }
     

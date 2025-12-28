@@ -79,7 +79,7 @@ public class ScreenMechanicalApothecary extends ScreenBase<ContainerMechanicalAp
     }
 
     @Override
-    protected void renderHoveredToolTip(int mouseX, int mouseY) {
+    public void renderHoveredToolTip(int mouseX, int mouseY) {
         if (mouseX >= 163 && mouseX <= 179 &&
                 mouseY >= 16 && mouseY <= 96) {
             String fluid = this.tile.getFluidInventory().getFluidAmount() + " / " + this.tile.getFluidInventory().getCapacity() + " mB";
