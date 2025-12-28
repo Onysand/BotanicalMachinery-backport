@@ -1,45 +1,37 @@
 package de.melanx.botanicalmachinery.blocks.tesr;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
 import de.melanx.botanicalmachinery.blocks.base.HorizontalRotatedTesr;
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalApothecary;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.helper.RenderHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Atlases;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.Vector3f;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.inventory.container.PlayerContainer;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 
-import javax.annotation.Nonnull;
-
 public class TesrMechanicalApothecary extends HorizontalRotatedTesr<TileMechanicalApothecary> {
 
-    public TesrMechanicalApothecary(TileEntityRendererDispatcher rendererDispatcherIn) {
-        super(rendererDispatcherIn);
+    public TesrMechanicalApothecary() {
+        super();
     }
 
     @Override
-    protected void doRender(@Nonnull TileMechanicalApothecary tile, float partialTicks, @Nonnull MatrixStack matrixStack, @Nonnull IRenderTypeBuffer buffer, int light, int overlay) {
-        if (!ClientConfig.everything.get() || !ClientConfig.apothecary.get())
+    protected void doRender(TileMechanicalApothecary tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+        if (!ClientConfig.everything || !ClientConfig.apothecary)
             return;
 
         if (!tile.getInventory().getStackInSlot(0).isEmpty()) {
             float time = ClientTickHandler.ticksInGame + partialTicks;
 
-            matrixStack.push();
-            matrixStack.translate(0.5, 14.3 / 16, 0.5);
-            matrixStack.scale(6 / 16f, 6 / 16f, 6 / 16f);
-            matrixStack.rotate(Vector3f.YP.rotationDegrees(time / 1.3f));
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(0.5, 14.3 / 16, 0.5);
+            GlStateManager.scale(6 / 16f, 6 / 16f, 6 / 16f);
+            GlStateManager.rotate(time / 1.3f, 0, 1, 0);
 
             ItemStack stack = tile.getInventory().getStackInSlot(0);
 
@@ -50,31 +42,33 @@ public class TesrMechanicalApothecary extends HorizontalRotatedTesr<TileMechanic
                     stack = tile.getCurrentOutput();
                 }
                 double amount = progress / (TileMechanicalApothecary.getRecipeDuration() / 2d);
-                matrixStack.translate(0, -amount, 0);
+                GlStateManager.translate(0, -amount, 0);
             }
 
-            Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.GROUND, 200, OverlayTexture.NO_OVERLAY, matrixStack, buffer);
+            Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
 
-            matrixStack.pop();
+            GlStateManager.popMatrix();
         }
 
         double fluidAmount = (tile.getFluidInventory().getFluidAmount() - ((tile.getProgress() / (double) TileMechanicalApothecary.getRecipeDuration()) * 1000d)) / (double) tile.getFluidInventory().getCapacity();
 
         if (tile.getFluidInventory().getFluidAmount() > 0) {
-            matrixStack.push();
-            matrixStack.translate(4 / 16d, (10 + (fluidAmount * 3.8)) / 16, 4 / 16d);
-            matrixStack.rotate(Vector3f.XP.rotationDegrees(90.0F));
-            matrixStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(4 / 16d, (10 + (fluidAmount * 3.8)) / 16, 4 / 16d);
+            GlStateManager.rotate(90, 1, 0, 0);
+            GlStateManager.scale(1 / 16f, 1 / 16f, 1 / 16f);
 
             FluidStack fluidStack = tile.getFluidInventory().getFluid();
-            TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasSpriteGetter(PlayerContainer.LOCATION_BLOCKS_TEXTURE).apply(fluidStack.getFluid().getAttributes().getStillTexture(fluidStack));
+            Minecraft.getMinecraft().getTextureManager().bindTexture(fluidStack.getFluid().getStill());
+            TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
+            TextureAtlasSprite sprite = textureMap.getAtlasSprite(fluidStack.getFluid().getStill().toString());
+            Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 
-            int fluidColor = Fluids.WATER.getAttributes().getColor(tile.getWorld(), tile.getPos());
+            int fluidColor = FluidRegistry.WATER.getColor(tile.getWorld(), tile.getPos());
 
-            IVertexBuilder vertex = buffer.getBuffer(Atlases.getTranslucentBlockType());
-            RenderHelper.renderIconColored(matrixStack, vertex, 0, 0, sprite, 8, 8, 1.0F, fluidColor, light, OverlayTexture.NO_OVERLAY);
+            RenderHelper.renderIconColored(0, 0, sprite, 8, 8, 1.0F, fluidColor);
 
-            matrixStack.pop();
+            GlStateManager.popMatrix();
         }
 
         int items = 0;
@@ -86,9 +80,9 @@ public class TesrMechanicalApothecary extends HorizontalRotatedTesr<TileMechanic
         double offsetPerPetal = 360d / items;
         double flowerTicks = (double) ((float) ClientTickHandler.ticksInGame + partialTicks) / 2;
 
-        matrixStack.push();
-        matrixStack.translate(0.5, (10 + ((fluidAmount * 3.8) / 1.5)) / 16, 0.5);
-        matrixStack.scale(0.125f, 0.125f, 0.125f);
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(0.5, (10 + ((fluidAmount * 3.8) / 1.5)) / 16, 0.5);
+        GlStateManager.scale(0.125f, 0.125f, 0.125f);
 
         int nextIdx = 0;
         boolean hasFluid = tile.getFluidInventory().getFluidAmount() > 0;
@@ -116,29 +110,29 @@ public class TesrMechanicalApothecary extends HorizontalRotatedTesr<TileMechanic
                     radiusZ = 1.2000000476837158 + 0.10000000149011612;
                 }
 
-                double x = radiusX * Math.cos(rad);
-                double z = radiusZ * Math.sin(rad);
-                double y = hasFluid ? (float) Math.cos((flowerTicks + (double) (50 * i)) / 5.0D) / 10.0F : 0;
+                double rX = radiusX * Math.cos(rad);
+                double rZ = radiusZ * Math.sin(rad);
+                double rY = hasFluid ? (float) Math.cos((flowerTicks + (double) (50 * i)) / 5.0D) / 10.0F : 0;
 
-                matrixStack.push();
-                matrixStack.translate(x, y, z);
+                GlStateManager.pushMatrix();
+                GlStateManager.translate(rX, rY, rZ);
 
-                matrixStack.translate(0.0625f, 0.0625f, 0.0625f);
+                GlStateManager.translate(0.0625f, 0.0625f, 0.0625f);
                 if (hasFluid) {
                     float xRotate = (float) Math.sin(flowerTicks * 0.25) / 2;
                     float yRotate = (float) Math.max(0.6000000238418579, Math.sin(flowerTicks * 0.10000000149011612) / 2 + 0.5);
                     float zRotate = (float) Math.cos(flowerTicks * 0.25) / 2;
-                    matrixStack.rotate((new Vector3f(xRotate, yRotate, zRotate)).rotationDegrees((float) deg));
+                    GlStateManager.rotate((float) deg, xRotate, yRotate, zRotate);
                 } else {
-                    matrixStack.rotate((Vector3f.XP.rotationDegrees(90)));
+                    GlStateManager.rotate(90, 1, 0, 0);
                 }
-                matrixStack.translate(-0.0625f, -0.0625f, -0.0625f);
+                GlStateManager.translate(-0.0625f, -0.0625f, -0.0625f);
 
                 ItemStack stack = tile.getInventory().getStackInSlot(slot);
-                Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.GROUND, light, overlay, matrixStack, buffer);
-                matrixStack.pop();
+                Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
+                GlStateManager.popMatrix();
             }
         }
-        matrixStack.pop();
+        GlStateManager.popMatrix();
     }
 }

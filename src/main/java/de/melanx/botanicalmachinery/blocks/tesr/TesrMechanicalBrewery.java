@@ -1,24 +1,25 @@
 package de.melanx.botanicalmachinery.blocks.tesr;
 
 import com.google.common.collect.ImmutableMap;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
 import de.melanx.botanicalmachinery.blocks.base.HorizontalRotatedTesr;
+import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalApothecary;
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalBrewery;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.helper.RenderHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Atlases;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.Quaternion;
-import net.minecraft.client.renderer.Vector3f;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.inventory.container.PlayerContainer;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.init.Items;
 import net.minecraft.item.*;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fluids.FluidRegistry;
+import org.lwjgl.util.vector.Quaternion;
 import vazkii.botania.api.brew.IBrewItem;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.common.item.Item16Colors;
@@ -41,9 +42,9 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
             .put(Items.LEATHER, 0xc65c35)
             .put(Items.MAGMA_CREAM, 0xd58520)
             .put(Items.FERMENTED_SPIDER_EYE, 0x65062b)
-            .put(Items.LAPIS_LAZULI, 0x345ec3)
+            .put(Items.DYE, 0x345ec3)
             .put(Items.FIRE_CHARGE, 0xeeac18)
-            .put(Items.GLISTERING_MELON_SLICE, 0xc94908)
+            .put(Items.SPECKLED_MELON, 0xc94908)
             .put(Items.GHAST_TEAR, 0x9fc3c3)
             .put(Items.GUNPOWDER, 0x727272)
             .put(Items.ROTTEN_FLESH, 0x834418)
@@ -51,7 +52,7 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
             .put(Items.STRING, 0xdbdbdb)
             .put(Items.ENDER_PEARL, 0x349988)
             .put(Items.BLAZE_POWDER, 0xffe000)
-            .put(ModItems.manaSteel, 0x006bff)
+            .put(ModItems.manaResource, 0x006bff)
             .put(Items.SPIDER_EYE, 0x9d1e2d)
             .put(Items.GOLDEN_CARROT, 0xdba213)
             .put(Items.PAPER, 0xe9eaeb)
@@ -59,28 +60,32 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
             .put(Items.FEATHER, 0x969696)
             .put(Items.CARROT, 0xff8e09)
             .put(Items.REDSTONE, 0xea0400)
-            .put(Items.COD, 0xc6a271)
+            .put(Items.FISH, 0xc6a271)
             .put(Items.QUARTZ, 0xddd4c6)
             .put(Items.SNOWBALL, 0xffffff)
             .put(Items.EMERALD, 0x17dd62)
-            .put(Items.MELON_SLICE, 0xbf3123)
+            .put(Items.MELON, 0xbf3123)
             .build();
 
     private final int waterColor;
 
-    public TesrMechanicalBrewery(TileEntityRendererDispatcher rendererDispatcherIn) {
-        super(rendererDispatcherIn);
-        this.waterColor = Fluids.WATER.getAttributes().getColor();
+    public TesrMechanicalBrewery() {
+        super();
+        this.waterColor = FluidRegistry.WATER.getColor();
     }
 
     @Override
-    protected void doRender(@Nonnull TileMechanicalBrewery tile, float partialTicks, @Nonnull MatrixStack matrixStack, @Nonnull IRenderTypeBuffer buffer, int light, int overlay) {
-        if (!ClientConfig.everything.get() || !ClientConfig.brewery.get())
+    protected void doRender(TileMechanicalBrewery tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+        if (!ClientConfig.everything || !ClientConfig.brewery)
             return;
-
+        
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+        
+        int light = getWorld().getLight(tile.getPos());
         int slotToMove = -1;
         double travelCenter = 1;
-        Quaternion vialRotate = null;
+        Float vialRotate = null;
         double vialDown = 0;
         boolean showOutput = false;
 
@@ -101,10 +106,10 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
 
                 double progressMinusHalf = segmentProgress - 0.5;
                 vialDown = (progressMinusHalf * progressMinusHalf) - 0.25;
-                vialRotate = Vector3f.XP.rotationDegrees((float) (480 * vialDown));
+                vialRotate = (float) (480 * vialDown);
                 vialDown = 1.8 * vialDown;
                 showOutput = progressMinusHalf >= 0;
-                this.renderFluid(matrixStack, buffer, partialTicks, light, (float) (1 - segmentProgress), this.getTargetColor(tile));
+                this.renderFluid(buffer, partialTicks, light, (float) (1 - segmentProgress), this.getTargetColor(tile));
             } else if (progress >= 1 - (2 * segment)) {
                 slotToMove = Integer.MAX_VALUE;
 
@@ -115,9 +120,9 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
                         break;
                     }
                 }
-                this.renderFluid(matrixStack, buffer, partialTicks, light, 1, fromColor, this.getTargetColor(tile), segmentProgress);
+                this.renderFluid(buffer, partialTicks, light, 1, fromColor, this.getTargetColor(tile), segmentProgress);
             } else if (progress < segment) {
-                this.renderFluid(matrixStack, buffer, partialTicks, light, (float) segmentProgress, this.waterColor);
+                this.renderFluid(buffer, partialTicks, light, (float) segmentProgress, this.waterColor);
             } else {
                 int idx = (int) ((progress - segment) / segment);
 
@@ -140,7 +145,7 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
                     }
                 }
 
-                this.renderFluid(matrixStack, buffer, partialTicks, light, 1, fromColor, toColor, segmentProgress);
+                this.renderFluid(buffer, partialTicks, light, 1, fromColor, toColor, segmentProgress);
             }
         }
 
@@ -151,16 +156,16 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
             topStack = tile.getInventory().getStackInSlot(0);
         }
 
-        matrixStack.push();
-        matrixStack.translate(0.5, 0.8 + vialDown, 0.5);
-        matrixStack.scale(0.5f, 0.5f, 0.5f);
-        matrixStack.rotate(Vector3f.YP.rotationDegrees((ClientTickHandler.ticksInGame + partialTicks) / 1.3f));
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(0.5, 0.8 + vialDown, 0.5);
+        GlStateManager.scale(0.5f, 0.5f, 0.5f);
+        GlStateManager.rotate((ClientTickHandler.ticksInGame + partialTicks) / 1.3f, 0, 1, 0);
         if (vialRotate != null)
-            matrixStack.rotate(vialRotate);
+            GlStateManager.rotate(vialRotate, 1, 0 ,0);
 
-        Minecraft.getInstance().getItemRenderer().renderItem(topStack, ItemCameraTransforms.TransformType.GROUND, light, OverlayTexture.NO_OVERLAY, matrixStack, buffer);
+        Minecraft.getMinecraft().getRenderItem().renderItem(topStack, ItemCameraTransforms.TransformType.GROUND);
 
-        matrixStack.pop();
+        GlStateManager.popMatrix();
 
         int itemAmount = 0;
         for (int i = 1; i <= 6; i++) {
@@ -178,22 +183,22 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
                 int idxNow = idx++;
                 if (i < slotToMove)
                     continue;
-                matrixStack.push();
-                matrixStack.translate(0.5, 0.7, 0.5);
-                matrixStack.scale(0.3f, 0.3f, 0.3f);
-                matrixStack.rotate(Vector3f.YP.rotationDegrees((float) -((angle * idxNow) + time)));
+                GlStateManager.pushMatrix();
+                GlStateManager.translate(0.5, 0.7, 0.5);
+                GlStateManager.scale(0.3f, 0.3f, 0.3f);
+                GlStateManager.rotate((float) -((angle * idxNow) + time), 0, 1, 0);
                 if (i == slotToMove) {
-                    matrixStack.translate((1 - travelCenter) * 1.125, travelCenter * -1, (1 - travelCenter) * 0.25);
-                    matrixStack.rotate(Vector3f.XP.rotationDegrees((float) (90 * travelCenter)));
+                    GlStateManager.translate((1 - travelCenter) * 1.125, travelCenter * -1, (1 - travelCenter) * 0.25);
+                    GlStateManager.rotate((float) (90 * travelCenter), 1, 0 ,0);
                 } else {
-                    matrixStack.translate(1.125, 0, 0.25);
+                    GlStateManager.translate(1.125, 0, 0.25);
                 }
-                matrixStack.rotate(Vector3f.YP.rotationDegrees(90f));
-                matrixStack.translate(0, 0.075 * Math.sin((time + (idxNow * 10)) / 5d), 0);
+                GlStateManager.rotate(90f, 0, 1, 0);
+                GlStateManager.translate(0, 0.075 * Math.sin((time + (idxNow * 10)) / 5d), 0);
 
-                Minecraft.getInstance().getItemRenderer().renderItem(tile.getInventory().getStackInSlot(i), ItemCameraTransforms.TransformType.GROUND, light, OverlayTexture.NO_OVERLAY, matrixStack, buffer);
+                Minecraft.getMinecraft().getRenderItem().renderItem(tile.getInventory().getStackInSlot(i), ItemCameraTransforms.TransformType.GROUND);
 
-                matrixStack.pop();
+                GlStateManager.popMatrix();
             }
         }
     }
@@ -203,13 +208,13 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
             return this.waterColor;
         } else if (INGREDIENT_COLORS.containsKey(stack.getItem())) {
             return INGREDIENT_COLORS.get(stack.getItem());
-        } else if (stack.getItem() instanceof DyeItem) {
-            return ((DyeItem) stack.getItem()).getDyeColor().getColorValue();
-        } else if (stack.getItem() instanceof BlockItem) {
+        } else if (stack.getItem() instanceof ItemDye) {
+            return EnumDyeColor.byDyeDamage(stack.getItemDamage()).getColorValue();
+        } else if (stack.getItem() instanceof ItemBlock) {
             //noinspection deprecation
-            return ((BlockItem) stack.getItem()).getBlock().getMaterial(((BlockItem) stack.getItem()).getBlock().getDefaultState()).getColor().colorValue;
+            return ((ItemBlock) stack.getItem()).getBlock().getMaterial(((ItemBlock) stack.getItem()).getBlock().getDefaultState()).getMaterialMapColor().colorValue;
         } else if (stack.getItem() instanceof Item16Colors) {
-            return ((Item16Colors) stack.getItem()).color.getColorValue();
+            return EnumDyeColor.byMetadata(stack.getMetadata()).getColorValue();
         } else {
             return this.waterColor;
         }
@@ -223,7 +228,7 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
         }
     }
 
-    private void renderFluid(MatrixStack matrixStack, @Nonnull IRenderTypeBuffer buffer, float partialTicks, int light, float fillLevel, int colorFrom, int colorTo, double progress) {
+    private void renderFluid(@Nonnull BufferBuilder buffer, float partialTicks, int light, float fillLevel, int colorFrom, int colorTo, double progress) {
         int fromRed = colorFrom >> 16 & 255;
         int fromGreen = colorFrom >> 8 & 255;
         int fromBlue = colorFrom & 255;
@@ -238,20 +243,42 @@ public class TesrMechanicalBrewery extends HorizontalRotatedTesr<TileMechanicalB
 
         int color = (red << 16) | (green << 8) | blue;
 
-        this.renderFluid(matrixStack, buffer, partialTicks, light, fillLevel, color);
+        this.renderFluid(buffer, partialTicks, light, fillLevel, color);
     }
 
-    private void renderFluid(MatrixStack matrixStack, @Nonnull IRenderTypeBuffer buffer, float partialTicks, int light, float fillLevel, int color) {
-        matrixStack.push();
-        matrixStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
-        matrixStack.translate(4, 3 + (4.4 * fillLevel), 4);
-        matrixStack.rotate(Vector3f.XP.rotationDegrees(90));
-
-        TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasSpriteGetter(PlayerContainer.LOCATION_BLOCKS_TEXTURE).apply(Fluids.WATER.getAttributes().getStillTexture());
-
-        IVertexBuilder vertex = buffer.getBuffer(Atlases.getTranslucentBlockType());
-        RenderHelper.renderIconColored(matrixStack, vertex, 0, 0, sprite, 8, 8, 1.0F, color, light, OverlayTexture.NO_OVERLAY);
-
-        matrixStack.pop();
+    private void renderFluid(BufferBuilder buffer, float partialTicks, int light, float fillLevel, int color) {
+        GlStateManager.pushMatrix();
+        
+        GlStateManager.scale(1 / 16.0f, 1 / 16.0f, 1 / 16.0f);
+        GlStateManager.translate(4.0f, 3.0f + (4.4f * fillLevel), 4.0f);
+        GlStateManager.rotate(90, 1, 0, 0);
+        
+        ResourceLocation stillLocation = FluidRegistry.WATER.getStill();
+        TextureAtlasSprite sprite = Minecraft.getMinecraft()
+            .getTextureMapBlocks()
+            .getAtlasSprite(stillLocation.toString());
+        
+        float a = (color >> 24 & 255) / 255.0F;
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
+        
+        GlStateManager.color(r, g, b, a);
+        
+        int j = light >> 16 & 65535;
+        int k = light & 65535;
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j, (float)k);
+        
+        buffer.begin(7, DefaultVertexFormats.POSITION_TEX);
+        
+        double size = 8.0;
+        buffer.pos(0, size, 0).tex(sprite.getMinU(), sprite.getMaxV()).endVertex();
+        buffer.pos(size, size, 0).tex(sprite.getMaxU(), sprite.getMaxV()).endVertex();
+        buffer.pos(size, 0, 0).tex(sprite.getMaxU(), sprite.getMinV()).endVertex();
+        buffer.pos(0, 0, 0).tex(sprite.getMinU(), sprite.getMinV()).endVertex();
+        
+        Tessellator.getInstance().draw();
+        
+        GlStateManager.popMatrix();
     }
 }

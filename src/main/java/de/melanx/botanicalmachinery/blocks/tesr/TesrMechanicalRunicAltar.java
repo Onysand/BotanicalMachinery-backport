@@ -1,53 +1,54 @@
 package de.melanx.botanicalmachinery.blocks.tesr;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import de.melanx.botanicalmachinery.blocks.base.HorizontalRotatedTesr;
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalRunicAltar;
 import de.melanx.botanicalmachinery.config.ClientConfig;
-import net.minecraft.block.BlockState;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.Vector3f;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.model.ModelRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
-import net.minecraft.item.BlockItem;
+import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import vazkii.botania.client.core.handler.ClientTickHandler;
-
-import javax.annotation.Nonnull;
+import vazkii.botania.client.model.ModelSpinningCubes;
 
 public class TesrMechanicalRunicAltar extends HorizontalRotatedTesr<TileMechanicalRunicAltar> {
 
-    private final ModelRenderer spinningCube = new ModelRenderer(64, 32, 42, 0);
+    private final ModelSpinningCubes modelCubes = new ModelSpinningCubes();
+    private final ModelRenderer spinningCube = new ModelRenderer(modelCubes, 42, 0)
+        .addBox(-4, -4, -4, 8, 8, 8);
 
-    public TesrMechanicalRunicAltar(TileEntityRendererDispatcher rendererDispatcherIn) {
-        super(rendererDispatcherIn);
+    public TesrMechanicalRunicAltar() {
+        super();
     }
 
     @Override
-    protected void doRender(@Nonnull TileMechanicalRunicAltar tile, float partialTicks, @Nonnull MatrixStack matrixStack, @Nonnull IRenderTypeBuffer buffer, int light, int overlay) {
-        if (!ClientConfig.everything.get() || !ClientConfig.runicAltar.get())
+    protected void doRender(TileMechanicalRunicAltar tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+        if (!ClientConfig.everything || !ClientConfig.runicAltar)
             return;
+        
+        BufferBuilder buffer = Tessellator.getInstance().getBuffer();
 
         ItemStack livingRockStack = tile.getInventory().getStackInSlot(0);
-        if (!livingRockStack.isEmpty() && livingRockStack.getItem() instanceof BlockItem) {
-            BlockState state = ((BlockItem) livingRockStack.getItem()).getBlock().getDefaultState();
+        if (!livingRockStack.isEmpty() && livingRockStack.getItem() instanceof ItemBlock) {
+            IBlockState state = ((ItemBlock) livingRockStack.getItem()).getBlock().getDefaultState();
 
-            matrixStack.push();
-            matrixStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
-            matrixStack.translate(6.5, 10, 6.5);
-            matrixStack.scale(3, 3, 3);
+            GlStateManager.pushMatrix();
+            GlStateManager.scale(1 / 16f, 1 / 16f, 1 / 16f);
+            GlStateManager.translate(6.5, 10, 6.5);
+            GlStateManager.scale(3, 3, 3);
 
-            matrixStack.translate(0.5, 0, 0.5);
-            matrixStack.rotate(Vector3f.YP.rotationDegrees(-(ClientTickHandler.ticksInGame + partialTicks)));
-            matrixStack.translate(-0.5, 0, -0.5);
+            GlStateManager.translate(0.5, 0, 0.5);
+            GlStateManager.rotate(-(ClientTickHandler.ticksInGame + partialTicks), 0, 1, 0);
+            GlStateManager.translate(-0.5, 0, -0.5);
 
             //noinspection deprecation
-            Minecraft.getInstance().getBlockRendererDispatcher().renderBlock(state, matrixStack, buffer, 200, OverlayTexture.NO_OVERLAY);
+            Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlock(state, tile.getPos(), tile.getWorld(), buffer);
 
-            matrixStack.pop();
+            GlStateManager.popMatrix();
         }
 
         double progressLeft = 1 - ((tile.getProgress() / (double) tile.getMaxProgress()) * 0.9);
@@ -82,20 +83,20 @@ public class TesrMechanicalRunicAltar extends HorizontalRotatedTesr<TileMechanic
                 if (angleIdx >= angles.length)
                     break;
 
-                matrixStack.push();
-                matrixStack.translate(0.5, 10.8 / 16d, 0.5);
-                matrixStack.scale(0.3f, 0.3f, 0.3f);
-                matrixStack.rotate(Vector3f.YP.rotationDegrees(angles[angleIdx] + time));
-                matrixStack.translate(travelCenter * 1.125, 0, travelCenter * 0.25);
-                matrixStack.rotate(Vector3f.YP.rotationDegrees(90f));
-                matrixStack.translate(0, 0.075 * Math.sin((time + (angleIdx * 10)) / 5d), 0);
+                GlStateManager.pushMatrix();
+                GlStateManager.translate(0.5, 10.8 / 16d, 0.5);
+                GlStateManager.scale(0.3f, 0.3f, 0.3f);
+                GlStateManager.rotate(angles[angleIdx] + time, 0, 1, 0);
+                GlStateManager.translate(travelCenter * 1.125, 0, travelCenter * 0.25);
+                GlStateManager.rotate(90f, 0, 1, 0);
+                GlStateManager.translate(0, 0.075 * Math.sin((time + (angleIdx * 10)) / 5d), 0);
                 if (shrink)
-                    matrixStack.scale(0.3f, 0.3f, 0.3f);
+                    GlStateManager.scale(0.3f, 0.3f, 0.3f);
 
                 ItemStack stack = tile.getInventory().getStackInSlot(slot);
-                Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.GROUND, 200, OverlayTexture.NO_OVERLAY, matrixStack, buffer);
+                Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
 
-                matrixStack.pop();
+                GlStateManager.popMatrix();
             }
         }
     }

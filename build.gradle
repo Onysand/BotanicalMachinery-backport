@@ -22,6 +22,7 @@ buildscript {
 }
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
+apply plugin: 'idea'
 
 version = "${mod_version}"
 def env = System.getenv()
@@ -34,8 +35,9 @@ archivesBaseName = "${modid}-${mc_version}"
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 minecraft {
-    mappings("stable", mappings_version)
+    mappings("snapshot", mappings_version)
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    copyIdeResources = true
 
     createRunConfig("client")
     createRunConfig("server")
@@ -129,7 +131,7 @@ repositories {
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
+    minecraft fg.deobf("net.minecraftforge:forge:${mc_version}-${forge_version}")
 
     implementation fg.deobf("vazkii.botania:Botania:${botania_version}")
     runtimeOnly fg.deobf("mezz.jei:jei_${mc_version}:${jei_version}")

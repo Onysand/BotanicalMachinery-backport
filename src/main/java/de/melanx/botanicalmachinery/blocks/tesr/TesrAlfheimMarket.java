@@ -1,62 +1,59 @@
 package de.melanx.botanicalmachinery.blocks.tesr;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
 import de.melanx.botanicalmachinery.blocks.base.HorizontalRotatedTesr;
 import de.melanx.botanicalmachinery.blocks.tiles.TileAlfheimMarket;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Atlases;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.Matrix3f;
-import net.minecraft.client.renderer.Matrix4f;
-import net.minecraft.client.renderer.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.item.ItemStack;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.core.handler.MiscellaneousIcons;
 import vazkii.botania.common.block.ModBlocks;
 
-import javax.annotation.Nonnull;
-
 public class TesrAlfheimMarket extends HorizontalRotatedTesr<TileAlfheimMarket> {
 
-    public TesrAlfheimMarket(TileEntityRendererDispatcher rendererDispatcherIn) {
-        super(rendererDispatcherIn);
+    public TesrAlfheimMarket() {
+        super();
     }
-
+    
     @Override
-    public void doRender(@Nonnull TileAlfheimMarket tile, float partialTicks, @Nonnull MatrixStack matrixStack, @Nonnull IRenderTypeBuffer buffer, int light, int overlay) {
-        if (!ClientConfig.everything.get() || !ClientConfig.alfheimMarket.get())
+    public void doRender(TileAlfheimMarket tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+        if (!ClientConfig.everything || !ClientConfig.alfheimMarket)
             return;
+        
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
 
-        matrixStack.push();
-        matrixStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
-        matrixStack.translate(3.2, 2, 3.6);
-        matrixStack.scale(3.6f, 3.6f, 3.6f);
+        GlStateManager.pushMatrix();
+        GlStateManager.scale(1 / 16f, 1 / 16f, 1 / 16f);
+        GlStateManager.translate(3.2, 2, 3.6);
+        GlStateManager.scale(3.6f, 3.6f, 3.6f);
         //noinspection deprecation
-        Minecraft.getInstance().getBlockRendererDispatcher().renderBlock(ModBlocks.naturaPylon.getDefaultState(), matrixStack, buffer, light, overlay);
-        matrixStack.translate(1 + (2 / 3.6), 0, 0);
+        Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlock(ModBlocks.pylon.getDefaultState(), tile.getPos(), tile.getWorld(), buffer);
+        GlStateManager.translate(1 + (2 / 3.6), 0, 0);
         //noinspection deprecation
-        Minecraft.getInstance().getBlockRendererDispatcher().renderBlock(ModBlocks.naturaPylon.getDefaultState(), matrixStack, buffer, light, overlay);
-        matrixStack.pop();
+        Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlock(ModBlocks.pylon.getDefaultState(), tile.getPos(), tile.getWorld(), buffer);
+        GlStateManager.popMatrix();
 
         if (tile.getCurrentMana() > 0) {
-            matrixStack.push();
-            matrixStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
-            matrixStack.translate(6.8, 1, 8.8);
-            matrixStack.scale(2.4f, 2.4f, 2.4f);
+            GlStateManager.pushMatrix();
+            GlStateManager.scale(1 / 16f, 1 / 16f, 1 / 16f);
+            GlStateManager.translate(6.8, 1, 8.8);
+            GlStateManager.scale(2.4f, 2.4f, 2.4f);
 
-            matrixStack.translate(-1.0D, 1.0D, 0.25D);
-            float alpha = (float) Math.min(1.0D, (Math.sin((double) ((float) ClientTickHandler.ticksInGame + partialTicks) / 8.0D) + 1.0D) / 7.0D + 0.6D);
+            GlStateManager.translate(-1.0D, 1.0D, 0.25D);
+            
+            float renderAlpha = (float) Math.min(1.0D, (Math.sin((double) ((float) ClientTickHandler.ticksInGame + partialTicks) / 8.0D) + 1.0D) / 7.0D + 0.6D);
+            this.renderPortal(buffer, MiscellaneousIcons.INSTANCE.alfPortalTex, 0, 0, 3, 3, renderAlpha);
+            GlStateManager.translate(0.0D, 0.0D, 0.5D);
+            this.renderPortal(buffer, MiscellaneousIcons.INSTANCE.alfPortalTex, 0, 0, 3, 3, renderAlpha);
 
-            this.renderPortal(matrixStack, buffer, MiscellaneousIcons.INSTANCE.alfPortalTex, 0, 0, 3, 3, alpha, overlay);
-            matrixStack.translate(0.0D, 0.0D, 0.5D);
-            this.renderPortal(matrixStack, buffer, MiscellaneousIcons.INSTANCE.alfPortalTex, 0, 0, 3, 3, alpha, overlay);
-
-            matrixStack.pop();
+            GlStateManager.popMatrix();
         }
 
         if (tile.getProgress() > 0) {
@@ -66,26 +63,42 @@ public class TesrAlfheimMarket extends HorizontalRotatedTesr<TileAlfheimMarket> 
                 double yPos = Math.pow(progress, 2);
                 double zPos = -(progress * 0.75);
 
-                matrixStack.push();
-                matrixStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
-                matrixStack.translate(8, 4.6, 8.8);
-                matrixStack.scale(5.4f, 5.4f, 5.4f);
-                matrixStack.translate(0, yPos, zPos);
-                matrixStack.rotate(Minecraft.getInstance().getRenderManager().getCameraOrientation());
+                GlStateManager.pushMatrix();
+                GlStateManager.scale(1 / 16f, 1 / 16f, 1 / 16f);
+                GlStateManager.translate(8, 4.6, 8.8);
+                GlStateManager.scale(5.4f, 5.4f, 5.4f);
+                GlStateManager.translate(0, yPos, zPos);
+                
+                RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
+                GlStateManager.rotate(-renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
+                GlStateManager.rotate(renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
 
-                Minecraft.getInstance().getItemRenderer().renderItem(stack, ItemCameraTransforms.TransformType.GROUND, 200, OverlayTexture.NO_OVERLAY, matrixStack, buffer);
-                matrixStack.pop();
+                Minecraft.getMinecraft().getRenderItem().renderItem(stack, ItemCameraTransforms.TransformType.GROUND);
+                GlStateManager.popMatrix();
             }
         }
     }
 
-    private void renderPortal(MatrixStack matrixStack, IRenderTypeBuffer buffer, TextureAtlasSprite sprite, int x, int y, int width, int height, float alpha, int overlay) {
-        IVertexBuilder vertex = buffer.getBuffer(Atlases.getTranslucentBlockType());
-        Matrix4f model = matrixStack.getLast().getMatrix();
-        Matrix3f normal = matrixStack.getLast().getNormal();
-        vertex.pos(model, (float) x, (float) (y + height), 0.0F).color(1.0F, 1.0F, 1.0F, alpha).tex(sprite.getMinU(), sprite.getMaxV()).overlay(overlay).lightmap(15728880).normal(normal, 1.0F, 0.0F, 0.0F).endVertex();
-        vertex.pos(model, (float) (x + width), (float) (y + height), 0.0F).color(1.0F, 1.0F, 1.0F, alpha).tex(sprite.getMaxU(), sprite.getMaxV()).overlay(overlay).lightmap(15728880).normal(normal, 1.0F, 0.0F, 0.0F).endVertex();
-        vertex.pos(model, (float) (x + width), (float) y, 0.0F).color(1.0F, 1.0F, 1.0F, alpha).tex(sprite.getMaxU(), sprite.getMinV()).overlay(overlay).lightmap(15728880).normal(normal, 1.0F, 0.0F, 0.0F).endVertex();
-        vertex.pos(model, (float) x, (float) y, 0.0F).color(1.0F, 1.0F, 1.0F, alpha).tex(sprite.getMinU(), sprite.getMinV()).overlay(overlay).lightmap(15728880).normal(normal, 1.0F, 0.0F, 0.0F).endVertex();
+    private void renderPortal(BufferBuilder buffer, TextureAtlasSprite sprite, int x, int y, int width, int height, float alpha) {
+        buffer.pos(x, y + height, 0.0F)
+            .tex(sprite.getMinU(), sprite.getMaxV())
+            .color(1.0F, 1.0F, 1.0F, alpha)
+            .normal(0.0F, 1.0F, 0.0F)
+            .endVertex();
+        buffer.pos(x + width, y + height, 0.0F)
+            .tex(sprite.getMaxU(), sprite.getMaxV())
+            .color(1.0F, 1.0F, 1.0F, alpha)
+            .normal(0.0F, 1.0F, 0.0F)
+            .endVertex();
+        buffer.pos(x + width, y, 0.0F)
+            .tex(sprite.getMaxU(), sprite.getMinV())
+            .color(1.0F, 1.0F, 1.0F, alpha)
+            .normal(0.0F, 1.0F, 0.0F)
+            .endVertex();
+        buffer.pos(x, y, 0.0F)
+            .tex(sprite.getMinU(), sprite.getMinV())
+            .color(1.0F, 1.0F, 1.0F, alpha)
+            .normal(0.0F, 1.0F, 0.0F)
+            .endVertex();
     }
 }
