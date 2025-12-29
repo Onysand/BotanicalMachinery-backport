@@ -1,6 +1,5 @@
 package de.melanx.botanicalmachinery.blocks.base;
 
-import de.melanx.botanicalmachinery.BotanicalMachinery;
 import de.melanx.botanicalmachinery.core.LibResources;
 import de.melanx.botanicalmachinery.gui.ManaBar;
 import net.minecraft.client.gui.inventory.GuiContainer;

@@ -1,7 +1,7 @@
 package de.melanx.botanicalmachinery.blocks.base;
 
 import com.google.common.base.Predicates;
-import de.melanx.botanicalmachinery.core.LibNames;
+import de.melanx.botanicalmachinery.BotanicalMachinery;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
@@ -68,7 +68,7 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
     public ITextComponent getDisplayName() {
         String name = "DEFAULT";
         if (this.getName() != null) name = this.getName();
-        return new TextComponentTranslation(name);
+        return new TextComponentTranslation("screen." + BotanicalMachinery.MODID + "." + name);
     }
     
     @Nonnull
