@@ -2,18 +2,14 @@ package de.melanx.botanicalmachinery.blocks.tiles;
 
 import de.melanx.botanicalmachinery.blocks.base.IWorkingTile;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
-import de.melanx.botanicalmachinery.config.ClientConfig;
-import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.helper.RecipeHelper;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
-import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.common.brewing.BrewingRecipe;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.brew.IBrewContainer;
 import vazkii.botania.api.brew.IBrewItem;
@@ -22,7 +18,6 @@ import vazkii.botania.common.Botania;
 import vazkii.botania.common.item.ModItems;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -45,7 +40,7 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
     private ItemStack currentOutput = ItemStack.EMPTY;
 
     public TileMechanicalBrewery() {
-        super(ServerConfig.capacityBrewery);
+        super(BMConfig.SERVER.capacities.brewery);
         this.inventory.setInputSlots(IntStream.range(0, 7).toArray());
         this.inventory.setOutputSlots(7);
     }
@@ -162,7 +157,7 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
                 this.markDispatchable();
             }
         } else if (this.world != null) {
-            if (this.progress > 0 && ClientConfig.everything && ClientConfig.brewery) {
+            if (this.progress > 0 && BMConfig.CLIENT.rendering.all && BMConfig.CLIENT.rendering.brewery) {
                 if (this.currentOutput.getItem() instanceof IBrewItem && this.world.rand.nextFloat() < 0.5f) {
                     int segments = 3;
                     for (int i = 1; i <= 6; i++) {
@@ -198,7 +193,7 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
     }
 
     public int getMaxManaPerTick() {
-        return MAX_MANA_PER_TICK / ServerConfig.multiplierBrewery;
+        return MAX_MANA_PER_TICK / BMConfig.SERVER.multipliers.brewery;
     }
 
     public int getManaCost() {

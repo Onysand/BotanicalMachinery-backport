@@ -1,7 +1,6 @@
 package de.melanx.botanicalmachinery.blocks.tiles;
 
-import de.melanx.botanicalmachinery.config.ClientConfig;
-import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.helper.RecipeHelper;
@@ -155,7 +154,7 @@ public class TileMechanicalApothecary extends TileMod implements ITickable {
                 this.updateRecipe();
                 this.update = false;
             }
-        } else if (this.world != null && ClientConfig.everything && ClientConfig.apothecary) {
+        } else if (this.world != null && BMConfig.CLIENT.rendering.all && BMConfig.CLIENT.rendering.apothecary) {
             if (this.fluidInventory.getFluidAmount() > 0) {
                 if (this.progress > getRecipeDuration() - 5) {
                     for (int i = 0; i < 5; i++) {
@@ -209,7 +208,7 @@ public class TileMechanicalApothecary extends TileMod implements ITickable {
     }
 
     public static int getRecipeDuration() {
-        return WORKING_DURATION * ServerConfig.multiplierApothecary;
+        return WORKING_DURATION * BMConfig.SERVER.multipliers.apothecary;
     }
 
     @Override

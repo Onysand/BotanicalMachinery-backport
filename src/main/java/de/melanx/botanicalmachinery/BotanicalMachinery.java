@@ -2,8 +2,6 @@ package de.melanx.botanicalmachinery;
 
 import de.melanx.botanicalmachinery.blocks.tesr.*;
 import de.melanx.botanicalmachinery.blocks.tiles.*;
-import de.melanx.botanicalmachinery.config.ClientConfig;
-import de.melanx.botanicalmachinery.config.ServerConfig;
 import de.melanx.botanicalmachinery.core.BotanicalMachineryTab;
 import de.melanx.botanicalmachinery.core.Registration;
 import de.melanx.botanicalmachinery.gui.GuiHandler;
@@ -17,8 +15,6 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.io.File;
 
 @Mod(
     modid = BotanicalMachinery.MODID,
@@ -37,14 +33,6 @@ public class BotanicalMachinery {
     
     @Mod.EventHandler
     private void preInit(FMLPreInitializationEvent event) {
-        switch (event.getSide()) {
-            case CLIENT:
-                ClientConfig.init(new File(event.getModConfigurationDirectory(), MODID + "-client.toml"));
-                break;
-            case SERVER:
-                ServerConfig.init(new File(event.getModConfigurationDirectory(), MODID + "-server.toml"));
-                break;
-        }
         BotanicalMachineryNetwork.registerPackets();
         MinecraftForge.EVENT_BUS.register(Registration.class);
     }

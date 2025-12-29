@@ -2,8 +2,7 @@ package de.melanx.botanicalmachinery.blocks.tiles;
 
 import de.melanx.botanicalmachinery.blocks.base.IWorkingTile;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
-import de.melanx.botanicalmachinery.config.ClientConfig;
-import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.helper.RecipeHelper;
@@ -45,7 +44,7 @@ public class TileMechanicalRunicAltar extends TileBase implements IWorkingTile {
         Arrays.stream(LibOreDict.RUNE).map(OreDictionary::getOres).collect(ArrayList::new, List::addAll, List::addAll);
     
     public TileMechanicalRunicAltar() {
-        super(ServerConfig.capacityRunicAltar);
+        super(BMConfig.SERVER.capacities.runicAltar);
         this.inventory.setInputSlots(IntStream.range(1, 17).toArray());
         this.inventory.setOutputSlots(IntStream.range(17, 33).toArray());
     }
@@ -186,7 +185,7 @@ public class TileMechanicalRunicAltar extends TileBase implements IWorkingTile {
                 this.updateRecipe();
                 this.update = false;
             }
-        } else if (this.world != null && ClientConfig.everything && ClientConfig.agglomerationFactory) {
+        } else if (this.world != null && BMConfig.CLIENT.rendering.all && BMConfig.CLIENT.rendering.agglomerationFactory) {
             if (this.getMaxProgress() > 0 && this.progress >= (this.getMaxProgress() - (5 * this.getMaxManaPerTick()))) {
                 for (int i = 0; i < 5; ++i) {
                     Botania.proxy.sparkleFX(this.pos.getX() + 0.3 + (this.world.rand.nextDouble() * 0.4), this.pos.getY() + 0.7, this.pos.getZ() + 0.3 + (this.world.rand.nextDouble() * 0.4), this.world.rand.nextFloat(), this.world.rand.nextFloat(), this.world.rand.nextFloat(), this.world.rand.nextFloat(), 10);
@@ -247,7 +246,7 @@ public class TileMechanicalRunicAltar extends TileBase implements IWorkingTile {
     }
 
     public int getMaxManaPerTick() {
-        return MAX_MANA_PER_TICK / ServerConfig.multiplierRunicAltar;
+        return MAX_MANA_PER_TICK / BMConfig.SERVER.multipliers.runicAltar;
     }
 
     public boolean isSlotUsedCurrently(int slot) {

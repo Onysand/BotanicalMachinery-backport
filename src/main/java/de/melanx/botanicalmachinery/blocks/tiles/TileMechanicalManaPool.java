@@ -1,11 +1,9 @@
 package de.melanx.botanicalmachinery.blocks.tiles;
 
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
-import de.melanx.botanicalmachinery.config.ClientConfig;
-import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
-import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import vazkii.botania.api.BotaniaAPI;
@@ -28,10 +26,10 @@ public class TileMechanicalManaPool extends TileBase {
     );
     private final BaseItemStackHandler inventory = new BaseItemStackHandler(3, this::onSlotChanged, this::isValidStack);
     public boolean validRecipe = true;
-    private int cooldown = ServerConfig.multiplierManaPool;
+    private int cooldown = BMConfig.SERVER.multipliers.manaPool;
 
     public TileMechanicalManaPool() {
-        super(ServerConfig.capacityManaPool);
+        super(BMConfig.SERVER.capacities.manaPool);
         this.inventory.addSlotLimit(0, 1);
         this.inventory.setOutputSlots(2);
     }
@@ -113,11 +111,11 @@ public class TileMechanicalManaPool extends TileBase {
                             ItemStack output = recipe.getOutput().copy();
                             this.inventory.getUnrestricted().insertItem(2, output, false);
                             this.markDirty();
-                            this.cooldown = ServerConfig.multiplierManaPool;
+                            this.cooldown = BMConfig.SERVER.multipliers.manaPool;
                         }
                     }
                 }
-            } else if (ClientConfig.everything && ClientConfig.agglomerationFactory) {
+            } else if (BMConfig.CLIENT.rendering.all && BMConfig.CLIENT.rendering.agglomerationFactory) {
                 double particleChance = (this.getCurrentMana() / (double) this.getManaCap()) * 0.1D;
                 if (Math.random() < particleChance) {
                     float red = 0.0F;

@@ -2,12 +2,10 @@ package de.melanx.botanicalmachinery.blocks.tiles;
 
 import de.melanx.botanicalmachinery.blocks.base.IWorkingTile;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
-import de.melanx.botanicalmachinery.config.ClientConfig;
-import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
-import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.oredict.OreDictionary;
@@ -27,7 +25,7 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
     private boolean recipe;
 
     public TileIndustrialAgglomerationFactory() {
-        super(ServerConfig.capacityAgglomerationFactory);
+        super(BMConfig.SERVER.capacities.agglomerationFactory);
         this.inventory.setOutputSlots(3);
         this.inventory.setSlotValidator(this::isValidStack);
     }
@@ -102,7 +100,7 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
             } else if (this.recipe) {
                 this.recipe = false;
             }
-        } else if (this.world != null && ClientConfig.everything && ClientConfig.agglomerationFactory) {
+        } else if (this.world != null && BMConfig.CLIENT.rendering.all && BMConfig.CLIENT.rendering.agglomerationFactory) {
             if (this.progress > 0) {
                 double time = this.progress / (double) this.getMaxProgress();
                 if (time < 0.8) {
@@ -134,6 +132,6 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
     }
 
     public int getMaxManaPerTick() {
-        return MAX_MANA_PER_TICK / ServerConfig.multiplierAgglomerationFactory;
+        return MAX_MANA_PER_TICK / BMConfig.SERVER.multipliers.agglomerationFactory;
     }
 }

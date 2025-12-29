@@ -2,7 +2,7 @@ package de.melanx.botanicalmachinery.blocks.tesr;
 
 import de.melanx.botanicalmachinery.blocks.base.HorizontalRotatedTesr;
 import de.melanx.botanicalmachinery.blocks.tiles.TileAlfheimMarket;
-import de.melanx.botanicalmachinery.config.ClientConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -23,7 +23,7 @@ public class TesrAlfheimMarket extends HorizontalRotatedTesr<TileAlfheimMarket> 
     
     @Override
     public void doRender(TileAlfheimMarket tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-        if (!ClientConfig.everything || !ClientConfig.alfheimMarket)
+        if (!BMConfig.CLIENT.rendering.all || !BMConfig.CLIENT.rendering.alfheimMarket)
             return;
         
         Tessellator tessellator = Tessellator.getInstance();

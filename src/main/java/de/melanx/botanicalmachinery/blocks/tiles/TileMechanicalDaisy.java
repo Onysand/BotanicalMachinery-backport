@@ -1,8 +1,7 @@
 package de.melanx.botanicalmachinery.blocks.tiles;
 
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
-import de.melanx.botanicalmachinery.config.ClientConfig;
-import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
@@ -95,7 +94,7 @@ public class TileMechanicalDaisy extends TileBase {
             RecipePureDaisy recipe = this.getRecipe(i);
             if (recipe != null) {
                 if (!this.world.isRemote) {
-                    if (this.workingTicks[i] >= recipe.getTime() * ServerConfig.multiplierDaisy) {
+                    if (this.workingTicks[i] >= recipe.getTime() * BMConfig.SERVER.multipliers.daisy) {
                         IBlockState state = recipe.getOutputState();
                         if (state.getBlock() != Blocks.AIR) {
                             this.inventory.setStackInSlot(i, state.getBlock().getItem(this.world, this.pos, state));
@@ -107,7 +106,7 @@ public class TileMechanicalDaisy extends TileBase {
                     } else {
                         this.workingTicks[i] += 1;
                     }
-                } else if (!hasSpawnedParticles && ClientConfig.everything && ClientConfig.daisy) {
+                } else if (!hasSpawnedParticles && BMConfig.CLIENT.rendering.all && BMConfig.CLIENT.rendering.daisy) {
                     hasSpawnedParticles = true;
                     double x = this.pos.getX() + Math.random();
                     double y = this.pos.getY() + Math.random() + 0.25D;
@@ -224,6 +223,7 @@ public class TileMechanicalDaisy extends TileBase {
         @Override
         public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
             if (stack.isEmpty() || !(stack.getItem() instanceof ItemBlock)) return false;
+            if (fluids.get(slot) != null) return false;
             Block b = ((ItemBlock) stack.getItem()).getBlock();
             for (RecipePureDaisy recipe : BotaniaAPI.pureDaisyRecipes) {
                 if (recipe.matches(TileMechanicalDaisy.this.getWorld(), TileMechanicalDaisy.this.getPos(), null, b.getDefaultState())) return true;

@@ -2,19 +2,17 @@ package de.melanx.botanicalmachinery.blocks.tiles;
 
 import de.melanx.botanicalmachinery.blocks.base.IWorkingTile;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
-import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.helper.RecipeHelper;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.recipe.RecipeElvenTrade;
-import vazkii.botania.common.core.helper.ItemNBTHelper;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -24,7 +22,7 @@ import java.util.stream.IntStream;
 
 public class TileAlfheimMarket extends TileBase implements IWorkingTile {
 
-    private static final int RECIPE_COST = ServerConfig.alfheimMarketRecipeCost;
+    private static final int RECIPE_COST = BMConfig.SERVER.recipeCosts.alfheimMarket;
     public static final int MAX_MANA_PER_TICK = 25;
 
     private final BaseItemStackHandler inventory = new BaseItemStackHandler(5, slot -> {
@@ -39,7 +37,7 @@ public class TileAlfheimMarket extends TileBase implements IWorkingTile {
     private ItemStack currentOutput = ItemStack.EMPTY;
 
     public TileAlfheimMarket() {
-        super(ServerConfig.capacityAlfheimMarket);
+        super(BMConfig.SERVER.capacities.alfheimMarket);
         this.inventory.setInputSlots(IntStream.range(0, 4).toArray());
         this.inventory.setOutputSlots(4);
         this.update = true;
@@ -170,7 +168,7 @@ public class TileAlfheimMarket extends TileBase implements IWorkingTile {
     }
 
     public int getMaxManaPerTick() {
-        return MAX_MANA_PER_TICK * ServerConfig.multiplierAlfheimMarket;
+        return MAX_MANA_PER_TICK * BMConfig.SERVER.multipliers.alfheimMarket;
     }
     
     public ItemStack getCurrentInput() {

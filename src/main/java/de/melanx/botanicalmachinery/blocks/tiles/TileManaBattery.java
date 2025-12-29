@@ -2,12 +2,11 @@ package de.melanx.botanicalmachinery.blocks.tiles;
 
 import de.melanx.botanicalmachinery.blocks.BlockManaBattery;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
-import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
-import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -27,7 +26,7 @@ public class TileManaBattery extends TileBase {
     private final BaseItemStackHandler inventory = new BaseItemStackHandler(2, slot -> this.sendPacket = true, this::isValidStack);
 
     public TileManaBattery() {
-        super(ServerConfig.capacityManaBattery);
+        super(BMConfig.SERVER.capacities.manaBattery);
     }
 
     @Nonnull

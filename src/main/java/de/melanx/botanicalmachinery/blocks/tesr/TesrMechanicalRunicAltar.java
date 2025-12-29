@@ -2,7 +2,7 @@ package de.melanx.botanicalmachinery.blocks.tesr;
 
 import de.melanx.botanicalmachinery.blocks.base.HorizontalRotatedTesr;
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalRunicAltar;
-import de.melanx.botanicalmachinery.config.ClientConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelRenderer;
@@ -27,7 +27,7 @@ public class TesrMechanicalRunicAltar extends HorizontalRotatedTesr<TileMechanic
 
     @Override
     protected void doRender(TileMechanicalRunicAltar tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-        if (!ClientConfig.everything || !ClientConfig.runicAltar)
+        if (!BMConfig.CLIENT.rendering.all || !BMConfig.CLIENT.rendering.runicAltar)
             return;
         
         BufferBuilder buffer = Tessellator.getInstance().getBuffer();

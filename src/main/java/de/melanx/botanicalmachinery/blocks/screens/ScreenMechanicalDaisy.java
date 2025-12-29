@@ -52,6 +52,7 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
         this.drawTexturedModalRect(12, 16, sprite, 48, 48);
         GlStateManager.disableBlend();
         GlStateManager.popMatrix();
+        GlStateManager.color(1, 1, 1, 1);
         
         this.renderHoveredToolTip(mouseX - this.guiLeft, mouseY - this.guiTop);
     }

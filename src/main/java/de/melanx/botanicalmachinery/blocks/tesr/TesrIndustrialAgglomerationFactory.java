@@ -2,7 +2,7 @@ package de.melanx.botanicalmachinery.blocks.tesr;
 
 import de.melanx.botanicalmachinery.blocks.base.HorizontalRotatedTesr;
 import de.melanx.botanicalmachinery.blocks.tiles.TileIndustrialAgglomerationFactory;
-import de.melanx.botanicalmachinery.config.ClientConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.helper.RenderHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -21,7 +21,7 @@ public class TesrIndustrialAgglomerationFactory extends HorizontalRotatedTesr<Ti
 
     @Override
     protected void doRender(TileIndustrialAgglomerationFactory tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-        if (!ClientConfig.everything || !ClientConfig.agglomerationFactory)
+        if (!BMConfig.CLIENT.rendering.all || !BMConfig.CLIENT.rendering.agglomerationFactory)
             return;
 
         double progressLeft = 1 - (tile.getProgress() / (double) tile.getMaxProgress());

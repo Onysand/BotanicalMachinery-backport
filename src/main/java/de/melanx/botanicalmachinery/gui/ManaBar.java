@@ -1,6 +1,6 @@
 package de.melanx.botanicalmachinery.gui;
 
-import de.melanx.botanicalmachinery.config.ClientConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibResources;
 import net.minecraft.client.gui.GuiScreen;
 
@@ -43,7 +43,7 @@ public class ManaBar {
     }
 
     public void renderHoveredToolTip(int mouseX, int mouseY, int mana) {
-        if (this.isMouseOver(mouseX, mouseY) && ClientConfig.numericalMana) {
+        if (this.isMouseOver(mouseX, mouseY) && BMConfig.CLIENT.numericalMana) {
             this.parent.drawHoveringText(mana + " / " + this.capacity + " Mana", mouseX, mouseY);
         }
     }

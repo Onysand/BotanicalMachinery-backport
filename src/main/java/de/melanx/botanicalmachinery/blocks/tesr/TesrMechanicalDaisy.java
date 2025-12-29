@@ -1,7 +1,7 @@
 package de.melanx.botanicalmachinery.blocks.tesr;
 
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalDaisy;
-import de.melanx.botanicalmachinery.config.ClientConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -17,7 +17,7 @@ public class TesrMechanicalDaisy extends TileEntitySpecialRenderer<TileMechanica
     
     @Override
     public void render(@Nonnull TileMechanicalDaisy tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-        if (!ClientConfig.everything || !ClientConfig.daisy)
+        if (!BMConfig.CLIENT.rendering.all || !BMConfig.CLIENT.rendering.daisy)
             return;
 
         GlStateManager.pushMatrix();

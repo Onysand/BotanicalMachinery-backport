@@ -2,7 +2,7 @@ package de.melanx.botanicalmachinery.blocks.tesr;
 
 import de.melanx.botanicalmachinery.blocks.base.HorizontalRotatedTesr;
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalApothecary;
-import de.melanx.botanicalmachinery.config.ClientConfig;
+import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.helper.RenderHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -22,7 +22,7 @@ public class TesrMechanicalApothecary extends HorizontalRotatedTesr<TileMechanic
 
     @Override
     protected void doRender(TileMechanicalApothecary tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
-        if (!ClientConfig.everything || !ClientConfig.apothecary)
+        if (!BMConfig.CLIENT.rendering.all || !BMConfig.CLIENT.rendering.apothecary)
             return;
 
         if (!tile.getInventory().getStackInSlot(0).isEmpty()) {
