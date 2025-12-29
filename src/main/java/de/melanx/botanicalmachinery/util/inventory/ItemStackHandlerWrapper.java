@@ -2,6 +2,7 @@ package de.melanx.botanicalmachinery.util.inventory;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemStackHandler;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,21 +24,30 @@ public class ItemStackHandlerWrapper implements IItemHandlerModifiable {
         this.canExtract = canExtract;
         this.canInsert = canInsert;
     }
+    
+    private IItemHandlerModifiable getInv() {
+        IItemHandlerModifiable inv = this.inventory;
+        if (inv == null) {
+            return new ItemStackHandler(0);
+        }
+        
+        return inv;
+    }
 
     @Override
     public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
-        this.inventory.setStackInSlot(slot, stack);
+        this.getInv().setStackInSlot(slot, stack);
     }
 
     @Override
     public int getSlots() {
-        return this.inventory.getSlots();
+        return this.getInv().getSlots();
     }
 
     @Nonnull
     @Override
     public ItemStack getStackInSlot(int slot) {
-        return this.inventory.getStackInSlot(slot);
+        return this.getInv().getStackInSlot(slot);
     }
 
     @Nonnull
@@ -45,7 +55,7 @@ public class ItemStackHandlerWrapper implements IItemHandlerModifiable {
     public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
         if (stack.isEmpty()) return ItemStack.EMPTY;
         if (!this.isItemValid(slot, stack)) return stack;
-        return this.inventory.insertItem(slot, stack, simulate);
+        return this.getInv().insertItem(slot, stack, simulate);
     }
 
     @Nonnull
@@ -54,12 +64,12 @@ public class ItemStackHandlerWrapper implements IItemHandlerModifiable {
         if (this.canExtract != null && !this.canExtract.apply(slot))
             return ItemStack.EMPTY;
 
-        return this.inventory.extractItem(slot, amount, simulate);
+        return this.getInv().extractItem(slot, amount, simulate);
     }
 
     @Override
     public int getSlotLimit(int slot) {
-        return this.inventory.getSlotLimit(slot);
+        return this.getInv().getSlotLimit(slot);
     }
 
     @Override
