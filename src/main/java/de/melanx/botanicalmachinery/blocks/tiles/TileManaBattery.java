@@ -142,7 +142,7 @@ public class TileManaBattery extends TileBase {
     }
 
     @Override
-    protected IItemHandlerModifiable createHandler(Supplier<IItemHandlerModifiable> inventory) {
+    protected IItemHandlerModifiable createItemHandler(Supplier<IItemHandlerModifiable> inventory) {
         return ItemStackHandlerWrapper.createFromSup(inventory, slot -> {
             ItemStack minus = inventory.get().getStackInSlot(0);
             ItemStack plus = inventory.get().getStackInSlot(1);

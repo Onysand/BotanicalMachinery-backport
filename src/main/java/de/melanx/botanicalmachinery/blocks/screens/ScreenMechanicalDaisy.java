@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
@@ -17,7 +18,7 @@ import java.util.List;
 
 public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> {
 
-    private static final ResourceLocation PURE_DAISY_TEXTURE = new ResourceLocation("botania", "blocks/flower_misc_pure_daisy");
+    private static final String PURE_DAISY_TEXTURE = "botania:blocks/flower_misc_pure_daisy";
 
     public ScreenMechanicalDaisy(ContainerMechanicalDaisy container) {
         super(container);
@@ -37,42 +38,48 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
 
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+        GlStateManager.color(1, 1, 1, 1);
         String s = this.container.tile.getDisplayName().getFormattedText();
         this.fontRenderer.drawString(s, (this.xSize / 2 - this.fontRenderer.getStringWidth(s) / 2), 6, 4210752);
         this.fontRenderer.drawString(this.mc.player.inventory.getDisplayName().getFormattedText(), 8, (this.ySize - 96 + 2), 4210752);
+        
         GlStateManager.pushMatrix();
-        GlStateManager.color(1, 1, 1, 1);
         GlStateManager.enableBlend();
-        TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
-        TextureAtlasSprite sprite = textureMap.getAtlasSprite(PURE_DAISY_TEXTURE.getResourcePath());
+        GlStateManager.color(1, 1, 1, 1);
         this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+        TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
+        TextureAtlasSprite sprite = textureMap.getAtlasSprite(PURE_DAISY_TEXTURE);
         this.drawTexturedModalRect(12, 16, sprite, 48, 48);
         GlStateManager.disableBlend();
         GlStateManager.popMatrix();
+        
         this.renderHoveredToolTip(mouseX - this.guiLeft, mouseY - this.guiTop);
     }
 
     @Override
     public void renderHoveredToolTip(int mouseX, int mouseY) {
         if (this.mc.player.inventory.getItemStack().isEmpty() && this.getSlotUnderMouse() != null) {
-            if (this.getSlotUnderMouse() instanceof ContainerMechanicalDaisy.ItemAndFluidSlot
-                    && ((ContainerMechanicalDaisy.ItemAndFluidSlot) this.getSlotUnderMouse()).inventory.getStackInSlot(this.getSlotUnderMouse().slotNumber).isEmpty()
-                    && !(((ContainerMechanicalDaisy.ItemAndFluidSlot) this.getSlotUnderMouse()).inventory.getFluidInTank(this.getSlotUnderMouse().slotNumber).amount <= 0)) {
-
-                FluidStack stack = ((ContainerMechanicalDaisy.ItemAndFluidSlot) this.getSlotUnderMouse()).inventory.getFluidInTank(this.getSlotUnderMouse().slotNumber);
-                List<String> list = ImmutableList.of(
-                        new TextComponentTranslation(stack.getUnlocalizedName()).getFormattedText(),
-                        new TextComponentString(stack.amount + " / 1000").getFormattedText()
-                );
-
-                this.drawHoveringText(list, mouseX, mouseY);
-                return;
+            if (this.getSlotUnderMouse() instanceof ContainerMechanicalDaisy.ItemAndFluidSlot) {
+                ContainerMechanicalDaisy.ItemAndFluidSlot slot = (ContainerMechanicalDaisy.ItemAndFluidSlot) this.getSlotUnderMouse();
+                boolean itemEmpty = slot.inventory.getStackInSlot(slot.slotNumber).isEmpty();
+                FluidStack fluidStack = slot.inventory.getFluidInTank(this.getSlotUnderMouse().slotNumber);
+                if (itemEmpty && fluidStack != null && fluidStack.amount >= 0) {
+                    List<String> list = ImmutableList.of(
+                        new TextComponentTranslation(fluidStack.getUnlocalizedName()).getFormattedText(),
+                        new TextComponentString(fluidStack.amount + " / 1000").getFormattedText()
+                    );
+                    
+                    this.drawHoveringText(list, mouseX, mouseY);
+                    return;
+                }
             }
         }
         super.renderHoveredToolTip(mouseX, mouseY);
     }
     
     private void drawFluidInSlots() {
+        this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+        
         this.inventorySlots.inventorySlots.forEach(slot -> {
             if (!(slot instanceof ContainerMechanicalDaisy.ItemAndFluidSlot)) return;
             
@@ -85,7 +92,6 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
             if (height <= 0) return;
             
             TextureAtlasSprite sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(stack.getFluid().getStill(stack).toString());
-            this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             
             int color = stack.getFluid().getColor();
             float r = ((color >> 16) & 0xFF) / 255f;
@@ -100,7 +106,8 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
             
             this.drawTexturedModalRect(x, y, sprite, 16, height);
             
-            GlStateManager.color(1, 1, 1, 1);
         });
+        
+        GlStateManager.color(1, 1, 1, 1);
     }
 }

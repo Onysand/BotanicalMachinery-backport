@@ -1,10 +1,13 @@
 package de.melanx.botanicalmachinery.blocks.tiles;
 
+import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.config.ServerConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
+import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
@@ -12,71 +15,95 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fluids.*;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.FluidTankProperties;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
 import vazkii.botania.api.BotaniaAPI;
-import vazkii.botania.api.internal.VanillaPacketDispatcher;
 import vazkii.botania.api.recipe.RecipePureDaisy;
 import vazkii.botania.common.Botania;
-import vazkii.botania.common.block.tile.TileMod;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class TileMechanicalDaisy extends TileMod implements ITickable {
-
-    private int ticksToNextUpdate = 5;
-    // Negative value = recipe completed
+public class TileMechanicalDaisy extends TileBase {
+    
     private int[] workingTicks = new int[8];
-    private final InventoryHandler inventory = new InventoryHandler();
-
-    private final IItemHandlerModifiable lazyInventory = ItemStackHandlerWrapper.create(this.inventory);
-
-    // The canExtract function makes it so that hoppers can only extract items when the recipe is done.
-    private final IItemHandlerModifiable hopperInventory = ItemStackHandlerWrapper.create(this.inventory, slot -> this.workingTicks[slot] < 0, null);
-    private final IFluidHandler fluidInventory = this.inventory;
-
-
+    private final TileMechanicalDaisy.InventoryHandler inventory = new InventoryHandler();
+    
+    private final IItemHandlerModifiable hopperInventory = ItemStackHandlerWrapper.createFromSup(() -> this.inventory, slot -> this.workingTicks[slot] < 0, null);
+    
     public TileMechanicalDaisy() {
-        super();
+        super(0);
     }
     
-    @Nullable
     @Override
-    public ITextComponent getDisplayName() {
-        return new TextComponentTranslation(LibNames.MECHANICAL_DAISY);
+    protected String getName() {
+        return LibNames.MECHANICAL_DAISY;
+    }
+    
+    @Nonnull
+    @Override
+    public TileMechanicalDaisy.InventoryHandler getInventory() {
+        return this.inventory;
+    }
+    
+    @Override
+    public boolean hasCustomCapability(Capability<?> cap, @Nullable EnumFacing facing) {
+        return true;
+    }
+    
+    @Override
+    public <X> X customCapabilityHandle(@Nonnull Capability<X> cap, EnumFacing facing) {
+        if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
+            //noinspection unchecked
+            return (X) this.inventory;
+        }
+        
+        return null;
+    }
+    
+    @Override
+    protected IItemHandlerModifiable createItemHandler(Supplier<IItemHandlerModifiable> inventory) {
+        return ItemStackHandlerWrapper.createFromSup(
+            inventory,
+            (slot) -> this.workingTicks[slot] <= 0,
+	        this::isValidStack
+        );
+    }
+    
+    @Override
+    public boolean isValidStack(int slot, ItemStack stack) {
+        return this.inventory.isItemValid(slot, stack);
     }
     
     @Override
     public void update() {
+        super.update();
+        
         boolean hasSpawnedParticles = false;
         for (int i = 0; i < 8; i++) {
             RecipePureDaisy recipe = this.getRecipe(i);
             if (recipe != null) {
-                //noinspection ConstantConditions
                 if (!this.world.isRemote) {
                     if (this.workingTicks[i] >= recipe.getTime() * ServerConfig.multiplierDaisy) {
                         IBlockState state = recipe.getOutputState();
                         if (state.getBlock() != Blocks.AIR) {
-                            //noinspection deprecation
                             this.inventory.setStackInSlot(i, state.getBlock().getItem(this.world, this.pos, state));
                         } else if (FluidRegistry.lookupFluidForBlock(state.getBlock()) != null) {
                             this.inventory.setStackInSlot(i, new FluidStack(FluidRegistry.lookupFluidForBlock(state.getBlock()), 1000));
                         }
                         this.workingTicks[i] = -1;
+                        this.markDispatchable();
                     } else {
                         this.workingTicks[i] += 1;
                     }
@@ -95,58 +122,13 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
                 }
             }
         }
-        //noinspection ConstantConditions
-        if (!this.world.isRemote) {
-            if (this.ticksToNextUpdate <= 0) {
-                this.ticksToNextUpdate = 5;
-                VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
-            } else {
-                this.ticksToNextUpdate -= 1;
-            }
-        }
     }
-
+    
     @Nullable
     private RecipePureDaisy getRecipe(int slot) {
         IBlockState state = getState(slot);
-        return this.getRecipe(state);
-    }
-
-    @Nullable
-    public IBlockState getState(int slot) {
-        IBlockState state = null;
-
-        ItemStack stack = this.inventory.getStackInSlot(slot);
-        if (!stack.isEmpty()) {
-            if (stack.getItem() instanceof ItemBlock) {
-                state = ((ItemBlock) stack.getItem()).getBlock().getDefaultState();
-            }
-        } else {
-            FluidStack fluid = this.inventory.fluids.get(slot);
-            if (fluid != null && fluid.amount >= 1000) {
-                state = fluid.getFluid().getBlock().getDefaultState();
-            }
-        }
-        return state;
-    }
-
-    @Nullable
-    public IBlockState getState(ItemStack stack) {
-        IBlockState state = null;
-
-        if (!stack.isEmpty()) {
-            if (stack.getItem() instanceof ItemBlock) {
-                state = ((ItemBlock) stack.getItem()).getBlock().getDefaultState();
-            }
-        }
-        return state;
-    }
-
-    @Nullable
-    public RecipePureDaisy getRecipe(IBlockState state) {
-        if (this.world == null) return null;
         if (state == null) return null;
-
+        
         for (RecipePureDaisy recipe : BotaniaAPI.pureDaisyRecipes) {
             if (recipe.matches(this.world, this.pos, null, state)) {
                 return recipe;
@@ -154,44 +136,63 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
         }
         return null;
     }
-
-    @Override
-    public void writePacketNBT(NBTTagCompound tag) {
-        tag.setTag(TileTags.INVENTORY, this.inventory.serializeNBT());
-        tag.setIntArray(TileTags.WORKING_TICKS, this.workingTicks);
-    }
-
-    @Override
-    public void readPacketNBT(NBTTagCompound tag) {
-        if (tag.hasKey(TileTags.INVENTORY)) {
-            this.inventory.deserializeNBT(tag.getCompoundTag(TileTags.INVENTORY));
+    
+    @Nullable
+    public IBlockState getState(int slot) {
+        ItemStack stack = this.inventory.getStackInSlot(slot);
+        if (!stack.isEmpty() && stack.getItem() instanceof ItemBlock) {
+            return ((ItemBlock) stack.getItem()).getBlock().getDefaultState();
         }
-        if (tag.hasKey(TileTags.WORKING_TICKS)) {
-            this.workingTicks = tag.getIntArray(TileTags.WORKING_TICKS);
+        FluidStack fluid = this.inventory.getFluidInTank(slot);
+        if (fluid != null && fluid.amount >= 1000) {
+            Block b = fluid.getFluid().getBlock();
+            if (b != null) return b.getDefaultState();
+        }
+        return null;
+    }
+    
+    @Override
+    public void writePacketNBT(NBTTagCompound cmp) {
+        super.writePacketNBT(cmp);
+        cmp.setIntArray(TileTags.WORKING_TICKS, this.workingTicks);
+    }
+    
+    @Override
+    public void readPacketNBT(NBTTagCompound cmp) {
+        super.readPacketNBT(cmp);
+        if (cmp.hasKey(TileTags.WORKING_TICKS)) {
+            this.workingTicks = cmp.getIntArray(TileTags.WORKING_TICKS);
         }
     }
-
+    
     @Nonnull
     @Override
     public <X> X getCapability(@Nonnull Capability<X> cap, @Nullable EnumFacing side) {
         if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-
-            // If the side is null (e.g we're in the gui) we return the normal inventory.
-            // For world interactions (direction != null) we return the inventory that block slots of not finished recipes.
-            //noinspection unchecked
-            return (X) (side == null ? this.lazyInventory : this.hopperInventory);
+            return (X) (side == null ? super.getCapability(cap, side) : this.hopperInventory);
         } else if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            //noinspection unchecked
-            return (X) this.fluidInventory;
+            return (X) this.inventory;
         }
         return super.getCapability(cap, side);
     }
-
-    public InventoryHandler getInventory() {
-        return this.inventory;
+    
+    public boolean isFluidValid(FluidStack fluidStack) {
+        if (fluidStack == null || fluidStack.getFluid() == null) return false;
+        
+        Block fluidBlock = fluidStack.getFluid().getBlock();
+        if (fluidBlock == null) return false;
+        
+        IBlockState state = fluidBlock.getDefaultState();
+        
+        for (RecipePureDaisy recipe : BotaniaAPI.pureDaisyRecipes) {
+            if (recipe.matches(this.world, this.pos, null, state)) {
+                return true;
+            }
+        }
+        return false;
     }
     
-    public class InventoryHandler extends ItemStackHandler implements IFluidHandler {
+    public class InventoryHandler extends BaseItemStackHandler implements IFluidHandler {
         
         private final List<FluidStack> fluids = new ArrayList<>(8);
         private final List<IFluidTankProperties> tankProperties = new ArrayList<>(8);
@@ -200,65 +201,8 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
             super(8);
             for (int i = 0; i < 8; i++) {
                 this.fluids.add(null);
-                tankProperties.add(new FluidTankProperties(fluids.get(i), 1000));
+                tankProperties.add(new FluidTankProperties(null, getTankCapacity()));
             }
-            //fluids = NonNullList.from(FluidStack.EMPTY, new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000));
-        }
-        
-        @Override
-        public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
-            if (!stack.isEmpty())
-                this.fluids.set(slot, null);
-            super.setStackInSlot(slot, stack);
-        }
-        
-        public void setStackInSlot(int slot, FluidStack stack) {
-            this.fluids.set(slot, stack);
-            if (stack != null)
-                super.setStackInSlot(slot, ItemStack.EMPTY);
-            else
-                this.onContentsChanged(slot); // setStackInSlot calls this as well
-        }
-        
-        @Override
-        public int getSlots() {
-            return 8;
-        }
-        
-        @Nonnull
-        @Override
-        public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
-            if (this.fluids.get(slot) != null) {
-                // The Slot is occupied by a fluid.
-                return stack;
-            } else {
-                return super.insertItem(slot, stack, simulate);
-            }
-        }
-        
-        @Nonnull
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            if (this.fluids.get(slot) != null) {
-                // The Slot is occupied by a fluid.
-                return ItemStack.EMPTY;
-            } else {
-                return super.extractItem(slot, amount, simulate);
-            }
-        }
-        
-        @Override
-        public int getSlotLimit(int slot) {
-            return 1;
-        }
-        
-        @Override
-        public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-            return !stack.isEmpty() && stack.getItem() instanceof ItemBlock && TileMechanicalDaisy.this.getRecipe(((ItemBlock) stack.getItem()).getBlock().getDefaultState()) != null;
-        }
-        
-        public FluidStack getFluidInTank(int tank) {
-            return this.fluids.get(tank);
         }
         
         public int getTankCapacity() {
@@ -266,113 +210,111 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
         }
         
         @Override
-        public IFluidTankProperties[] getTankProperties() {
-            return tankProperties.toArray(new IFluidTankProperties[0]);
+        public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
+            if (!stack.isEmpty()) this.fluids.set(slot, null);
+            super.setStackInSlot(slot, stack);
         }
         
-        public boolean isFluidValid(int tank, FluidStack stack) {
-            return
-                stack != null && TileMechanicalDaisy.this.getRecipe(stack.getFluid().getBlock().getDefaultState()) != null
-                && this.fluids.get(tank) != null && this.fluids.get(tank).getFluid() == stack.getFluid();
+        public void setStackInSlot(int slot, FluidStack stack) {
+            this.fluids.set(slot, stack);
+            if (stack != null) super.setStackInSlot(slot, ItemStack.EMPTY);
+            else this.onContentsChanged(slot);
+        }
+        
+        @Override
+        public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+            if (stack.isEmpty() || !(stack.getItem() instanceof ItemBlock)) return false;
+            Block b = ((ItemBlock) stack.getItem()).getBlock();
+            for (RecipePureDaisy recipe : BotaniaAPI.pureDaisyRecipes) {
+                if (recipe.matches(TileMechanicalDaisy.this.getWorld(), TileMechanicalDaisy.this.getPos(), null, b.getDefaultState())) return true;
+            }
+            return false;
+        }
+        
+        @Override
+        public int getSlotLimit(int slot) {
+            return 1;
+        }
+        
+        // --- IFluidHandler Implementation ---
+        
+        @Override
+        public IFluidTankProperties[] getTankProperties() {
+            for (int i = 0; i < 8; i++) {
+                tankProperties.set(i, new FluidTankProperties(fluids.get(i), 1000));
+            }
+            return tankProperties.toArray(new IFluidTankProperties[0]);
         }
         
         @Override
         public int fill(FluidStack resource, boolean doFill) {
-            int leftToFill = resource.amount;
-            
-            // Try to deposit the fluid to slots already filled with it
-            for (int i = 0; i < 8; i++) {
-                if (leftToFill <= 0)
+            if (resource == null) return 0;
+            if (!TileMechanicalDaisy.this.isFluidValid(resource)) return 0;
+            Block b = resource.getFluid().getBlock();
+            if (b == null) return 0;
+            boolean valid = false;
+            for (RecipePureDaisy recipe : BotaniaAPI.pureDaisyRecipes) {
+                if (recipe.matches(TileMechanicalDaisy.this.getWorld(), TileMechanicalDaisy.this.getPos(), null, b.getDefaultState())) {
+                    valid = true;
                     break;
-                if (!this.getStackInSlot(i).isEmpty())
-                    continue;
-                if (this.fluids.get(i).getFluid() == resource.getFluid()) {
-                    int transfer = Math.min(leftToFill, this.getTankCapacity() - this.fluids.get(i).amount);
-                    leftToFill -= transfer;
-                    if (doFill) {
-                        this.fluids.get(i).amount += transfer;
-                        this.onContentsChanged(i);
-                    }
                 }
             }
+            if (!valid) return 0;
             
-            // If that did not work we use an empty slot
             for (int i = 0; i < 8; i++) {
-                if (leftToFill <= 0)
-                    break;
-                if (!this.getStackInSlot(i).isEmpty())
-                    continue;
-                if (this.fluids.get(i) == null) {
-                    int transfer = Math.min(leftToFill, this.getTankCapacity());
-                    leftToFill -= transfer;
-                    if (doFill) {
-                        this.fluids.set(i, new FluidStack(resource.getFluid(), transfer));
+                if (this.getStackInSlot(i).isEmpty() && (this.fluids.get(i) == null || this.fluids.get(i).isFluidEqual(resource))) {
+                    int current = this.fluids.get(i) == null ? 0 : this.fluids.get(i).amount;
+                    int fillable = 1000 - current;
+                    int canFill = Math.min(resource.amount, fillable);
+                    if (doFill && canFill > 0) {
+                        if (this.fluids.get(i) == null) this.fluids.set(i, new FluidStack(resource.getFluid(), canFill));
+                        else this.fluids.get(i).amount += canFill;
                         this.onContentsChanged(i);
                     }
+                    return canFill;
                 }
             }
-            return resource.amount - leftToFill;
+            return 0;
         }
         
-        @Nonnull
+        @Nullable
         @Override
         public FluidStack drain(FluidStack resource, boolean doDrain) {
-            int leftToDrain = resource.amount;
-            
+            if (resource == null) return null;
             for (int i = 0; i < 8; i++) {
-                if (leftToDrain <= 0)
-                    break;
-                if (!this.getStackInSlot(i).isEmpty())
-                    continue;
-                if (this.fluids.get(i).getFluid() == resource.getFluid()) {
-                    int transfer = Math.min(this.fluids.get(i).amount, leftToDrain);
-                    leftToDrain -= transfer;
-                    if (doDrain) {
-                        this.fluids.get(i).amount -= transfer;
-                        if (this.fluids.get(i).amount <= 0)
-                            this.fluids.set(i, null);
-                        this.onContentsChanged(i);
-                    }
+                if (this.fluids.get(i) != null && this.fluids.get(i).isFluidEqual(resource)) {
+                    return this.drain(i, resource.amount, doDrain);
                 }
             }
-            
-            if (resource.amount - leftToDrain > 0) {
-                return new FluidStack(resource.getFluid(), resource.amount - leftToDrain);
-            } else {
-                return null;
-            }
+            return null;
         }
         
-        @Nonnull
+        @Nullable
         @Override
         public FluidStack drain(int maxDrain, boolean doDrain) {
-            int leftToDrain = maxDrain;
-            Fluid drainFluid = null;
-            
             for (int i = 0; i < 8; i++) {
-                if (leftToDrain <= 0)
-                    break;
-                if (!this.getStackInSlot(i).isEmpty())
-                    continue;
-                if (drainFluid == null || drainFluid == this.fluids.get(i).getFluid()) {
-                    int transfer = Math.min(this.fluids.get(i).amount, leftToDrain);
-                    leftToDrain -= transfer;
-                    if (transfer > 0)
-                        drainFluid = this.fluids.get(i).getFluid();
-                    if (doDrain) {
-                        this.fluids.get(i).amount -= transfer;
-                        if (this.fluids.get(i).amount <= 0)
-                            this.fluids.set(i, null);
-                        this.onContentsChanged(i);
-                    }
+                if (this.fluids.get(i) != null) {
+                    return this.drain(i, maxDrain, doDrain);
                 }
             }
-            
-            if (drainFluid == null) {
-                return null;
-            } else {
-                return new FluidStack(drainFluid, maxDrain - leftToDrain);
+            return null;
+        }
+        
+        private FluidStack drain(int slot, int amount, boolean doDrain) {
+            FluidStack stack = this.fluids.get(slot);
+            if (stack == null) return null;
+            int drainable = Math.min(amount, stack.amount);
+            FluidStack ret = new FluidStack(stack.getFluid(), drainable);
+            if (doDrain) {
+                stack.amount -= drainable;
+                if (stack.amount <= 0) this.fluids.set(slot, null);
+                this.onContentsChanged(slot);
             }
+            return ret;
+        }
+        
+        public FluidStack getFluidInTank(int tank) {
+            return this.fluids.get(tank);
         }
         
         @Override
@@ -402,12 +344,9 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
         }
         
         @Override
-        protected void onContentsChanged(int slot) {
-            for (int i = 0; i < 8; i++) {
-                fluids.set(i, tankProperties.get(i).getContents());
-            }
-            
+        public void onContentsChanged(int slot) {
             TileMechanicalDaisy.this.markDirty();
+            TileMechanicalDaisy.this.markDispatchable();
         }
     }
 }
