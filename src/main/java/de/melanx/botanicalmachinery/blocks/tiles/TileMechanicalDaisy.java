@@ -190,8 +190,8 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
         public InventoryHandler() {
             super(8);
             for (int i = 0; i < 8; i++) {
-                this.fluids.set(i, null);
-                tankProperties.set(i, new FluidTankProperties(fluids.get(i), 1000));
+                this.fluids.add(null);
+                tankProperties.add(new FluidTankProperties(fluids.get(i), 1000));
             }
             //fluids = NonNullList.from(FluidStack.EMPTY, new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000), new FluidStack(Fluids.WATER, 1000));
         }
