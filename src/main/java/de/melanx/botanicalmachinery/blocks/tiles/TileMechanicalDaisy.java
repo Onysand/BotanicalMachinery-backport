@@ -135,8 +135,8 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
 
     @Nullable
     public RecipePureDaisy getRecipe(IBlockState state) {
-        if (this.world == null)
-            return null;
+        if (this.world == null) return null;
+        if (state == null) return null;
 
         for (RecipePureDaisy recipe : BotaniaAPI.pureDaisyRecipes) {
             if (recipe.matches(this.world, this.pos, null, state)) {
