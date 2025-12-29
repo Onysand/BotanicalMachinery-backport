@@ -18,6 +18,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -45,7 +46,7 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
     public String outputKey = "";
     public boolean sendPacket = false;
     
-    private final IItemHandlerModifiable handler = this.createHandler(this::getInventory);
+    private final IItemHandlerModifiable handler = this.createItemHandler(this::getInventory);
     
     public TileBase(int manaCap) {
         super();
@@ -57,7 +58,7 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
      * now. Always use IItemHandlerModifiable.createLazy. You may call the supplier inside the canExtract and canInsert
      * lambda.
      */
-    protected IItemHandlerModifiable createHandler(Supplier<IItemHandlerModifiable> inventory) {
+    protected IItemHandlerModifiable createItemHandler(Supplier<IItemHandlerModifiable> inventory) {
         return ItemStackHandlerWrapper.createFromSup(inventory);
     }
     
@@ -75,14 +76,34 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
     public abstract BaseItemStackHandler getInventory();
 
     public abstract boolean isValidStack(int slot, ItemStack stack);
-
+    
+    @Override
+    public boolean hasCapability(Capability<?> cap, @Nullable EnumFacing facing) {
+        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY
+        || cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) return true;
+        return super.hasCapability(cap, facing);
+    }
+    
+    public <X> X customCapabilityHandle(@Nonnull Capability<X> cap, EnumFacing facing) {
+        return null;
+    }
+    
+    public boolean hasCustomCapability(Capability<?> cap, @Nullable EnumFacing facing) {
+        return false;
+    }
+    
     @Nonnull
     @Override
     public <X> X getCapability(@Nonnull Capability<X> cap, EnumFacing facing) {
-        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-	        //noinspection unchecked
-	        return (X) this.handler;
-        }
+        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
+            //noinspection unchecked
+            return (X) (facing == null ? this.getInventory() : this.handler);
+        
+        try {
+            X custom = customCapabilityHandle(cap, facing);
+            if (custom != null) return custom;
+        } catch (Exception ignored) {}
+        
         return super.getCapability(cap, facing);
     }
 

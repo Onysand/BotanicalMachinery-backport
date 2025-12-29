@@ -7,10 +7,13 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemBucket;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.SlotItemHandler;
 
@@ -45,14 +48,27 @@ public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy>
             if (inMouse.getItem() instanceof ItemBlock) {
                 return super.slotClick(slot, dragType, clickType, player);
             }
-
+            
+            IFluidHandlerItem handlerItem = FluidUtil.getFluidHandler(inMouse);
+            if (handlerItem != null) {
+                FluidStack fluid = handlerItem.drain(Fluid.BUCKET_VOLUME, false);
+                if (fluid != null) {
+                    int accepted = this.inventory.fill(fluid, true);
+                    if (accepted > 0) {
+                        handlerItem.drain(accepted, true);
+                        player.inventory.setItemStack(handlerItem.getContainer());
+                        this.detectAndSendChanges();
+                        return inMouse;
+                    }
+                }
+            }
+            
             this.detectAndSendChanges();
             player.inventory.setItemStack(inMouse);
             return inMouse;
         }
         return super.slotClick(slot, dragType, clickType, player);
     }
-
     
     @Nonnull
     @Override
@@ -63,7 +79,7 @@ public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy>
             ItemStack stack = slot.getStack();
             itemstack = stack.copy();
 
-            final int inventorySize = 5;
+            final int inventorySize = 8;
             final int playerInventoryEnd = inventorySize + 27;
             final int playerHotbarEnd = playerInventoryEnd + 9;
 
@@ -178,19 +194,6 @@ public class ContainerMechanicalDaisy extends ContainerBase<TileMechanicalDaisy>
     
     private boolean areItemsAndTagsEqual(ItemStack stack, ItemStack itemstack) {
         return ItemStack.areItemsEqual(stack, itemstack) && ItemStack.areItemStackTagsEqual(stack, itemstack);
-    }
-    
-    private ItemStack tryToDepositFluid(IFluidHandlerItem fluidCap) {
-        for (int i = 0; i < 8; i++) {
-            if (this.inventory.getStackInSlot(i).isEmpty() && this.inventory.getFluidInTank(i) == null) {
-                FluidStack maxDrain = fluidCap.drain(this.inventory.getTankCapacity(), false);
-                if (this.inventory.isFluidValid(i, maxDrain)) {
-                    fluidCap.drain(maxDrain, true);
-                    this.inventory.setStackInSlot(i, maxDrain);
-                }
-            }
-        }
-        return fluidCap.getContainer();
     }
     
     public static class ItemAndFluidSlot extends SlotItemHandler {
