@@ -4,6 +4,7 @@ import de.melanx.botanicalmachinery.blocks.base.IWorkingTile;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.helper.RecipeHelper;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
@@ -48,7 +49,12 @@ public class TileMechanicalRunicAltar extends TileBase implements IWorkingTile {
         this.inventory.setInputSlots(IntStream.range(1, 17).toArray());
         this.inventory.setOutputSlots(IntStream.range(17, 33).toArray());
     }
-
+    
+    @Override
+    protected String getName() {
+        return LibNames.MECHANICAL_RUNIC_ALTAR;
+    }
+    
     @Nonnull
     @Override
     public BaseItemStackHandler getInventory() {

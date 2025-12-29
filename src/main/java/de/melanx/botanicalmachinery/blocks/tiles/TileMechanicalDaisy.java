@@ -2,6 +2,7 @@ package de.melanx.botanicalmachinery.blocks.tiles;
 
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
 import net.minecraft.block.state.IBlockState;
@@ -12,6 +13,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.*;
@@ -50,7 +53,13 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
     public TileMechanicalDaisy() {
         super();
     }
-
+    
+    @Nullable
+    @Override
+    public ITextComponent getDisplayName() {
+        return new TextComponentTranslation(LibNames.MECHANICAL_DAISY);
+    }
+    
     @Override
     public void update() {
         boolean hasSpawnedParticles = false;
@@ -220,7 +229,7 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
         @Override
         public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
             if (this.fluids.get(slot) != null) {
-                // Slot is occupied by a fluid.
+                // The Slot is occupied by a fluid.
                 return stack;
             } else {
                 return super.insertItem(slot, stack, simulate);
@@ -231,7 +240,7 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             if (this.fluids.get(slot) != null) {
-                // Slot is occupied by a fluid.
+                // The Slot is occupied by a fluid.
                 return ItemStack.EMPTY;
             } else {
                 return super.extractItem(slot, amount, simulate);
@@ -371,9 +380,10 @@ public class TileMechanicalDaisy extends TileMod implements ITickable {
             NBTTagCompound nbt = super.serializeNBT();
             NBTTagList tag = new NBTTagList();
             for (int i = 0; i < 8; i++) {
+                FluidStack stack = this.fluids.get(i);
                 NBTTagCompound fluidNbt = new NBTTagCompound();
-                this.fluids.get(i).writeToNBT(fluidNbt);
-                tag.set(i, fluidNbt);
+                if (stack != null) stack.writeToNBT(fluidNbt);
+                tag.appendTag(fluidNbt);
             }
             nbt.setTag("fluids", tag);
             return nbt;

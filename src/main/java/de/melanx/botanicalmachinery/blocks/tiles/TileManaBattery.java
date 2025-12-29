@@ -3,6 +3,7 @@ package de.melanx.botanicalmachinery.blocks.tiles;
 import de.melanx.botanicalmachinery.blocks.BlockManaBattery;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
@@ -44,7 +45,12 @@ public class TileManaBattery extends TileBase {
         }
         return stack.getItem() instanceof IManaItem;
     }
-
+    
+    @Override
+    protected String getName() {
+        return LibNames.MANA_BATTERY;
+    }
+    
     @Override
     public void writePacketNBT(NBTTagCompound cmp) {
         super.writePacketNBT(cmp);

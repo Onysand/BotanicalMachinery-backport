@@ -1,5 +1,6 @@
 package de.melanx.botanicalmachinery.blocks.base;
 
+import de.melanx.botanicalmachinery.BotanicalMachinery;
 import de.melanx.botanicalmachinery.core.LibResources;
 import de.melanx.botanicalmachinery.gui.ManaBar;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -20,7 +21,7 @@ public abstract class ScreenBase<X extends ContainerBase<?>> extends GuiContaine
     public ScreenBase(X container) {
         super(container);
         this.manaBar = new ManaBar(this, ((IManaMachineTile) container.tile).getManaCap());
-        this.container = (ContainerBase<?>) this.inventorySlots;
+        this.container = container;
     }
     
     @Override

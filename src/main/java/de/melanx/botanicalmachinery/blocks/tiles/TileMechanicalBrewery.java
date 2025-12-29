@@ -4,6 +4,7 @@ import de.melanx.botanicalmachinery.blocks.base.IWorkingTile;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.helper.RecipeHelper;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
@@ -48,7 +49,12 @@ public class TileMechanicalBrewery extends TileBase implements IWorkingTile {
         this.inventory.setInputSlots(IntStream.range(0, 7).toArray());
         this.inventory.setOutputSlots(7);
     }
-
+    
+    @Override
+    protected String getName() {
+        return LibNames.MECHANICAL_BREWERY;
+    }
+    
     @Nonnull
     @Override
     public BaseItemStackHandler getInventory() {

@@ -3,6 +3,7 @@ package de.melanx.botanicalmachinery.blocks.tiles;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.Item;
@@ -34,7 +35,12 @@ public class TileMechanicalManaPool extends TileBase {
         this.inventory.addSlotLimit(0, 1);
         this.inventory.setOutputSlots(2);
     }
-
+    
+    @Override
+    protected String getName() {
+        return LibNames.MECHANICAL_MANA_POOL;
+    }
+    
     public RecipeManaInfusion getMatchingRecipe(@Nonnull ItemStack stack, @Nonnull ItemStack cat) {
         List<RecipeManaInfusion> matchingNonCatRecipes = new ArrayList<>();
         List<RecipeManaInfusion> matchingCatRecipes = new ArrayList<>();

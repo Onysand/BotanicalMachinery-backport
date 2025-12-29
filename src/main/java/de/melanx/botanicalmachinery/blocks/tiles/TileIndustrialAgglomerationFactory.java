@@ -4,6 +4,7 @@ import de.melanx.botanicalmachinery.blocks.base.IWorkingTile;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.ClientConfig;
 import de.melanx.botanicalmachinery.config.ServerConfig;
+import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import net.minecraft.item.EnumDyeColor;
@@ -30,7 +31,12 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
         this.inventory.setOutputSlots(3);
         this.inventory.setSlotValidator(this::isValidStack);
     }
-
+    
+    @Override
+    protected String getName() {
+        return LibNames.INDUSTRIAL_AGGLOMERATION_FACTORY;
+    }
+    
     @Nonnull
     @Override
     public BaseItemStackHandler getInventory() {

@@ -1,6 +1,7 @@
 package de.melanx.botanicalmachinery.blocks.base;
 
 import com.google.common.base.Predicates;
+import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
@@ -14,6 +15,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -30,6 +33,7 @@ import vazkii.botania.client.core.handler.HUDHandler;
 import vazkii.botania.common.block.tile.TileMod;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -56,7 +60,17 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
     protected IItemHandlerModifiable createHandler(Supplier<IItemHandlerModifiable> inventory) {
         return ItemStackHandlerWrapper.createFromSup(inventory);
     }
-
+    
+    protected abstract String getName();
+    
+    @Nullable
+    @Override
+    public ITextComponent getDisplayName() {
+        String name = "DEFAULT";
+        if (this.getName() != null) name = this.getName();
+        return new TextComponentTranslation(name);
+    }
+    
     @Nonnull
     public abstract BaseItemStackHandler getInventory();
 
