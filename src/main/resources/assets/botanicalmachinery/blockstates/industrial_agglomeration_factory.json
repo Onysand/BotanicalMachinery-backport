@@ -1,18 +1,21 @@
 {
   "variants": {
+    "normal": {
+      "model": "botanicalmachinery:industrial_agglomeration_factory"
+    },
     "facing=north": {
-      "model": "botanicalmachinery:block/industrial_agglomeration_factory"
+      "model": "botanicalmachinery:industrial_agglomeration_factory"
     },
     "facing=south": {
-      "model": "botanicalmachinery:block/industrial_agglomeration_factory",
+      "model": "botanicalmachinery:industrial_agglomeration_factory",
       "y": 180
     },
     "facing=west": {
-      "model": "botanicalmachinery:block/industrial_agglomeration_factory",
+      "model": "botanicalmachinery:industrial_agglomeration_factory",
       "y": 270
     },
     "facing=east": {
-      "model": "botanicalmachinery:block/industrial_agglomeration_factory",
+      "model": "botanicalmachinery:industrial_agglomeration_factory",
       "y": 90
     }
   }

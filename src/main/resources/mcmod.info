@@ -1,0 +1,17 @@
+[
+  {
+    "modid": "botanicalmachinery",
+    "name": "Botanical Machinery",
+    "description": "A Minecraft addon mod for Botania which makes automation easier.",
+    "version": "${version}",
+    "mcversion": "1.12.2",
+    "authorList": [
+      "MelanX"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "dependencies": [
+      "botania"
+    ]
+  }
+]

@@ -1,18 +1,21 @@
 {
   "variants": {
+    "normal": {
+      "model": "botanicalmachinery:mechanical_brewery"
+    },
     "facing=north": {
-      "model": "botanicalmachinery:block/mechanical_brewery"
+      "model": "botanicalmachinery:mechanical_brewery"
     },
     "facing=south": {
-      "model": "botanicalmachinery:block/mechanical_brewery",
+      "model": "botanicalmachinery:mechanical_brewery",
       "y": 180
     },
     "facing=west": {
-      "model": "botanicalmachinery:block/mechanical_brewery",
+      "model": "botanicalmachinery:mechanical_brewery",
       "y": 270
     },
     "facing=east": {
-      "model": "botanicalmachinery:block/mechanical_brewery",
+      "model": "botanicalmachinery:mechanical_brewery",
       "y": 90
     }
   }

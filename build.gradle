@@ -20,6 +20,7 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.+', changing: true
     }
 }
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
@@ -58,7 +59,11 @@ def createRunConfig(String name, Closure extra = {}) {
 }
 
 sourceSets.main.resources {
-    srcDir 'src/generated/resources'
+    srcDir 'src/main/resources'
+}
+
+processResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 jar {
@@ -80,11 +85,13 @@ jar.finalizedBy('reobfJar')
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier.set('sources')
     from sourceSets.main.allSource
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 task deobfJar(type: Jar) {
     from sourceSets.main.output
     archiveClassifier.set('deobf')
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 artifacts {
@@ -128,13 +135,40 @@ repositories {
         name = "botania"
         url = "https://maven.blamejared.com/"
     }
+    maven {
+        url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
 }
 
 dependencies {
-    minecraft fg.deobf("net.minecraftforge:forge:${mc_version}-${forge_version}")
+    minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
+    // Добавляем { transitive = false } к каждому модулю
 
-    implementation fg.deobf("vazkii.botania:Botania:${botania_version}")
-    runtimeOnly fg.deobf("mezz.jei:jei_${mc_version}:${jei_version}")
+    implementation(fg.deobf("curse.maven:botania-225643:3330934")) { transitive = false }
+    implementation(fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")) { transitive = false }
+    implementation(fg.deobf("curse.maven:baubles-227083:2518667")) { transitive = false }
+
+    runtimeOnly(fg.deobf("mezz.jei:jei_${mc_version}:${jei_version}")) { transitive = false }
     compileOnly fg.deobf("mezz.jei:jei_${mc_version}:${jei_version}:api")
-    implementation fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'com.google.guava:guava:21.0'
+        force 'com.google.code.gson:gson:2.8.0'
+        force 'org.ow2.asm:asm-debug-all:5.2'
+        force 'org.ow2.asm:asm:5.2'
+    }
+
+    exclude group: 'com.google.guava', module: 'listenablefuture'
+    exclude group: 'com.google.guava', module: 'failureaccess'
+}
+
+idea {
+    module {
+        inheritOutputDirs = true
+    }
 }

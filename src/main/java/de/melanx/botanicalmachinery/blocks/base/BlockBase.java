@@ -2,7 +2,6 @@ package de.melanx.botanicalmachinery.blocks.base;
 
 import de.melanx.botanicalmachinery.BotanicalMachinery;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyDirection;
@@ -24,7 +23,7 @@ import vazkii.botania.api.wand.IWandHUD;
 @SuppressWarnings({"NullableProblems", "deprecation"})
 public abstract class BlockBase extends Block implements ITileEntityProvider, IWandHUD {
    
-    public static final PropertyDirection FACING = BlockHorizontal.FACING;
+    public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
   
     public static final AxisAlignedBB FRAME_SHAPE = new AxisAlignedBB(0, 0, 0, 1, 1, 1);
 

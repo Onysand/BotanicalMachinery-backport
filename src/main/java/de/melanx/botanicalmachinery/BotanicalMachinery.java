@@ -1,6 +1,5 @@
 package de.melanx.botanicalmachinery;
 
-import de.melanx.botanicalmachinery.blocks.screens.*;
 import de.melanx.botanicalmachinery.blocks.tesr.*;
 import de.melanx.botanicalmachinery.blocks.tiles.*;
 import de.melanx.botanicalmachinery.config.ClientConfig;
@@ -10,6 +9,7 @@ import de.melanx.botanicalmachinery.core.Registration;
 import de.melanx.botanicalmachinery.gui.GuiHandler;
 import de.melanx.botanicalmachinery.network.BotanicalMachineryNetwork;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -20,7 +20,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 
-@Mod(modid = BotanicalMachinery.MODID)
+@Mod(
+    modid = BotanicalMachinery.MODID,
+    dependencies = "required-after:forge@[14.23.5.2864,);required-after:baubles@[1.5.2,);required-after:botania@[r1.10-364,);"
+)
 public class BotanicalMachinery {
     
     public static final String MODID = "botanicalmachinery";
@@ -43,6 +46,7 @@ public class BotanicalMachinery {
                 break;
         }
         BotanicalMachineryNetwork.registerPackets();
+        MinecraftForge.EVENT_BUS.register(Registration.class);
     }
 
     @Mod.EventHandler

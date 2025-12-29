@@ -1,7 +1,7 @@
 {
   "variants": {
-    "": {
-      "model": "botanicalmachinery:block/mechanical_daisy"
+    "normal": {
+      "model": "botanicalmachinery:mechanical_daisy"
     }
   }
 }

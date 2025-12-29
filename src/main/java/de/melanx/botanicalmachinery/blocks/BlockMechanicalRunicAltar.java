@@ -2,7 +2,6 @@ package de.melanx.botanicalmachinery.blocks;
 
 import de.melanx.botanicalmachinery.blocks.base.BlockBase;
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalRunicAltar;
-import de.melanx.botanicalmachinery.core.Registration;
 import de.melanx.botanicalmachinery.gui.GuiHandler;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;

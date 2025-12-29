@@ -7,6 +7,8 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -28,6 +30,7 @@ import javax.annotation.Nullable;
 public class BlockMechanicalApothecary extends Block implements ITileEntityProvider {
     
     private static final AxisAlignedBB AABB = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.875D, 1.0D);
+    public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
 
     public BlockMechanicalApothecary() {
         super(Material.ROCK);
@@ -75,6 +78,21 @@ public class BlockMechanicalApothecary extends Block implements ITileEntityProvi
     }
     
     @Override
+    protected BlockStateContainer createBlockState() {
+        return new BlockStateContainer(this, FACING);
+    }
+    
+    @Override
+    public int getMetaFromState(IBlockState state) {
+        return state.getValue(FACING).getHorizontalIndex();
+    }
+    
+    @Override
+    public IBlockState getStateFromMeta(int meta) {
+        return this.getDefaultState().withProperty(FACING, EnumFacing.getHorizontal(meta));
+    }
+    
+    @Override
     public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float x, float y, float z, int meta, EntityLivingBase placer, EnumHand hand) {
         return this.getDefaultState().withProperty(BlockHorizontal.FACING, placer.getHorizontalFacing().getOpposite());
     }
@@ -88,7 +106,12 @@ public class BlockMechanicalApothecary extends Block implements ITileEntityProvi
     public boolean isOpaqueCube(IBlockState state) {
         return true;
     }
-
+    
+    @Override
+    public boolean isFullCube(IBlockState state) {
+        return true;
+    }
+    
     @SuppressWarnings("deprecation")
     @Override
     public int getComparatorInputOverride(@Nonnull IBlockState blockState, @Nonnull World worldIn, @Nonnull BlockPos pos) {

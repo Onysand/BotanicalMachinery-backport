@@ -1,19 +1,9 @@
 {
   "variants": {
-    "facing=north": {
-      "model": "botanicalmachinery:block/mechanical_runic_altar"
-    },
-    "facing=south": {
-      "model": "botanicalmachinery:block/mechanical_runic_altar",
-      "y": 180
-    },
-    "facing=west": {
-      "model": "botanicalmachinery:block/mechanical_runic_altar",
-      "y": 270
-    },
-    "facing=east": {
-      "model": "botanicalmachinery:block/mechanical_runic_altar",
-      "y": 90
-    }
+    "normal": { "model": "botanicalmachinery:mechanical_runic_altar" },
+    "facing=north": { "model": "botanicalmachinery:mechanical_runic_altar" },
+    "facing=south": { "model": "botanicalmachinery:mechanical_runic_altar", "y": 180 },
+    "facing=west":  { "model": "botanicalmachinery:mechanical_runic_altar", "y": 270 },
+    "facing=east":  { "model": "botanicalmachinery:mechanical_runic_altar", "y": 90 }
   }
 }
