@@ -26,8 +26,8 @@ public abstract class ScreenBase<X extends ContainerBase<?>> extends GuiContaine
     @Override
     public void initGui() {
         super.initGui();
-        this.relX = (this.getXSize() - this.xSize) / 2;
-        this.relY = (this.getYSize() - this.ySize) / 2;
+        this.relX = (this.getGuiLeft() - this.xSize) / 2;
+        this.relY = (this.getGuiTop() - this.ySize) / 2;
     }
     
     @Override
