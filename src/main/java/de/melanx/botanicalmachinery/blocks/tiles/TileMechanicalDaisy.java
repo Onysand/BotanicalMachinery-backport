@@ -22,7 +22,6 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.FluidTankProperties;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.recipe.RecipePureDaisy;
@@ -38,8 +37,6 @@ public class TileMechanicalDaisy extends TileBase {
     
     private int[] workingTicks = new int[8];
     private final TileMechanicalDaisy.InventoryHandler inventory = new InventoryHandler();
-    
-    private final IItemHandlerModifiable hopperInventory = ItemStackHandlerWrapper.createFromSup(() -> this.inventory, slot -> this.workingTicks[slot] < 0, null);
     
     public TileMechanicalDaisy() {
         super(0);
@@ -164,17 +161,6 @@ public class TileMechanicalDaisy extends TileBase {
         }
     }
     
-    @Nonnull
-    @Override
-    public <X> X getCapability(@Nonnull Capability<X> cap, @Nullable EnumFacing side) {
-        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-            return (X) (side == null ? super.getCapability(cap, side) : this.hopperInventory);
-        } else if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            return (X) this.inventory;
-        }
-        return super.getCapability(cap, side);
-    }
-    
     public boolean isFluidValid(FluidStack fluidStack) {
         if (fluidStack == null || fluidStack.getFluid() == null) return false;
         
@@ -248,18 +234,7 @@ public class TileMechanicalDaisy extends TileBase {
         
         @Override
         public int fill(FluidStack resource, boolean doFill) {
-            if (resource == null) return 0;
             if (!TileMechanicalDaisy.this.isFluidValid(resource)) return 0;
-            Block b = resource.getFluid().getBlock();
-            if (b == null) return 0;
-            boolean valid = false;
-            for (RecipePureDaisy recipe : BotaniaAPI.pureDaisyRecipes) {
-                if (recipe.matches(TileMechanicalDaisy.this.getWorld(), TileMechanicalDaisy.this.getPos(), null, b.getDefaultState())) {
-                    valid = true;
-                    break;
-                }
-            }
-            if (!valid) return 0;
             
             for (int i = 0; i < 8; i++) {
                 if (this.getStackInSlot(i).isEmpty() && (this.fluids.get(i) == null || this.fluids.get(i).isFluidEqual(resource))) {

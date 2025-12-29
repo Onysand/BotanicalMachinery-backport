@@ -81,6 +81,9 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
     private void drawFluidInSlots() {
         this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
         
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        
         this.inventorySlots.inventorySlots.forEach(slot -> {
             if (!(slot instanceof ContainerMechanicalDaisy.ItemAndFluidSlot)) return;
             
@@ -94,11 +97,13 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
             
             TextureAtlasSprite sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(stack.getFluid().getStill(stack).toString());
             
-            int color = stack.getFluid().getColor();
+            int color = stack.getFluid().getColor(stack);
             float r = ((color >> 16) & 0xFF) / 255f;
             float g = ((color >> 8) & 0xFF) / 255f;
             float b = (color & 0xFF) / 255f;
             float a = ((color >> 24) & 0xFF) / 255f;
+            
+            if (a <= 0) a = 1f;
             
             GlStateManager.color(r, g, b, a);
             
@@ -110,5 +115,6 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
         });
         
         GlStateManager.color(1, 1, 1, 1);
+        GlStateManager.disableBlend();
     }
 }
