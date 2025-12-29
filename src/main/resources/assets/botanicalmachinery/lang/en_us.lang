@@ -1,0 +1,29 @@
+itemGroup.botanicalmachinery=Botanical Machinery
+
+item.botanicalmachinery.mana_emerald.name=Mana Emerald
+
+tile.botanicalmachinery.mana_emerald_block.name=Mana Emerald Block
+tile.botanicalmachinery.alfheim_market.name=Alfheim Market
+tile.botanicalmachinery.industrial_agglomeration_factory.name=Industrial Agglomeration Factory
+tile.botanicalmachinery.mana_battery.name=Mana Battery
+tile.botanicalmachinery.mana_battery_creative.name=Creative Mana Battery
+tile.botanicalmachinery.mechanical_brewery.name=Mechanical Brewery
+tile.botanicalmachinery.mechanical_apothecary.name=Mechanical Apothecary
+tile.botanicalmachinery.mechanical_daisy.name=Mechanical Daisy
+tile.botanicalmachinery.mechanical_mana_pool.name=Machanical Mana Pool
+tile.botanicalmachinery.mechanical_runic_altar.name=Mechanical Runic Altar
+
+screen.botanicalmachinery.alfheim_market=Alfheim Market
+screen.botanicalmachinery.industrial_agglomeration_factory=Industrial Agglomeration Factory
+screen.botanicalmachinery.mana_battery=Mana Battery
+screen.botanicalmachinery.mana_battery_creative=Creative Mana Battery
+screen.botanicalmachinery.mechanical_apothecary=Mechanical Apothecary
+screen.botanicalmachinery.mechanical_brewery=Mechanical Brewery
+screen.botanicalmachinery.mechanical_daisy=Mechanical Daisy
+screen.botanicalmachinery.mechanical_mana_pool=Machanical Mana Pool
+screen.botanicalmachinery.mechanical_runic_altar=Mechanical Runic Altar
+
+lexicon.botanicalmachinery.title=Botanical Machinery
+lexicon.botanicalmachinery.description=Make your farms more compact. This is the chapter for Botanical Machinery, a mod by MelanX.
+lexicon.botanicalmachinery.introduction=A new discovery
+lexicon.botanicalmachinery.introduction.page1=It is said that <br>Elementium possesses certain properties...

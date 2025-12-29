@@ -11,14 +11,12 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = BotanicalMachinery.MODID)
 public class Registration {
     
     public static final List<Block> BLOCKS = new ArrayList<>();
@@ -60,6 +58,7 @@ public class Registration {
     
     private static Block registerBlock(Block block, String name) {
         block.setRegistryName(BotanicalMachinery.MODID, name);
+        block.setUnlocalizedName(BotanicalMachinery.MODID + "." + name);
         block.setCreativeTab(BotanicalMachinery.creativeTab);
         BLOCKS.add(block);
         return block;
@@ -67,6 +66,7 @@ public class Registration {
     
     private static Item registerItem(Item item, String name) {
         item.setRegistryName(BotanicalMachinery.MODID, name);
+        item.setUnlocalizedName(BotanicalMachinery.MODID + "." + name);
         item.setCreativeTab(BotanicalMachinery.creativeTab);
         ITEMS.add(item);
         return item;
