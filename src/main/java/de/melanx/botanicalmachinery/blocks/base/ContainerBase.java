@@ -104,27 +104,27 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
             ItemStack stack = slot.getStack();
             itemstack = stack.copy();
 
-            final int inventorySize = this.firstInventorySlot;
-            final int playerInventoryEnd = inventorySize + 27;
+            final int containerSize = this.firstInventorySlot; // Basically start of the player's inventory
+            final int playerInventoryEnd = containerSize + 27;
             final int playerHotbarEnd = playerInventoryEnd + 9;
 
             if (index < this.firstOutputSlot) {
-                if (!this.mergeItemStack(stack, inventorySize, playerHotbarEnd, true)) {
+                if (!this.mergeItemStack(stack, containerSize, playerHotbarEnd, true)) {
                     return ItemStack.EMPTY;
                 }
 
                 slot.onSlotChange(stack, itemstack);
-            } else if (index >= inventorySize) {
+            } else if (index >= containerSize) {
                 if (!this.mergeItemStack(stack, 0, this.firstOutputSlot, false)) {
                     return ItemStack.EMPTY;
                 } else if (index < playerInventoryEnd) {
                     if (!this.mergeItemStack(stack, playerInventoryEnd, playerHotbarEnd, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (index < playerHotbarEnd && !this.mergeItemStack(stack, inventorySize, playerInventoryEnd, false)) {
+                } else if (index < playerHotbarEnd && !this.mergeItemStack(stack, containerSize, playerInventoryEnd, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.mergeItemStack(stack, inventorySize, playerHotbarEnd, false)) {
+            } else if (!this.mergeItemStack(stack, containerSize, playerHotbarEnd, false)) {
                 return ItemStack.EMPTY;
             }
             if (stack.isEmpty()) {
@@ -161,7 +161,7 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
 
                 Slot slot = this.inventorySlots.get(i);
                 ItemStack itemstack = slot.getStack();
-                if (!itemstack.isEmpty() && ItemStack.areItemStackTagsEqual(stack, itemstack) && slot.isItemValid(stack)) {
+                if (!itemstack.isEmpty() && ItemStack.areItemsEqual(stack, itemstack) && ItemStack.areItemStackTagsEqual(stack, itemstack) && slot.isItemValid(stack)) {
                     int j = itemstack.getCount() + stack.getCount();
                     int maxSize = Math.min(slot.getSlotStackLimit(), stack.getMaxStackSize());
                     if (j <= maxSize) {
