@@ -4,11 +4,7 @@ import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibResources;
 import net.minecraft.client.gui.GuiScreen;
 
-/*
- * This class is inspired by Cyclics EnergyBar
- */
 public class ManaBar {
-
     private final GuiScreen parent;
     public int x = 153;
     public int y = 15;
@@ -29,17 +25,18 @@ public class ManaBar {
     }
 
     public void draw(float mana) {
-        int relX;
-        int relY;
         this.parent.mc.getTextureManager().bindTexture(LibResources.MANA_BAR);
-        relX = this.guiLeft + this.x;
-        relY = this.guiTop + this.y;
+        int relX = this.guiLeft + this.x;
+        int relY = this.guiTop + this.y;
         GuiScreen.drawModalRectWithCustomSizedTexture(relX, relY, 0, 0, this.width, this.height, this.width, this.height);
-        this.parent.mc.getTextureManager().bindTexture(LibResources.MANA_BAR_CURRENT);
-        relX += 1;
-        relY += this.height - 1;
+        
         float pct = Math.min(mana / this.capacity, 1.0F);
-        GuiScreen.drawModalRectWithCustomSizedTexture(relX, relY, 0, 0, this.width - 2, (int) -((this.height - 2) * pct), this.width - 2, this.height - 2);
+        int manaHeight = (int) ((this.height - 2) * pct);
+        if (manaHeight > 0) {
+            this.parent.mc.getTextureManager().bindTexture(LibResources.MANA_BAR_CURRENT);
+            int renderY = relY + (this.height - 1) - manaHeight;
+            GuiScreen.drawModalRectWithCustomSizedTexture(relX + 1, renderY, 0, 0, this.width - 2, manaHeight, this.width - 2, this.height - 2);
+        }
     }
 
     public void renderHoveredToolTip(int mouseX, int mouseY, int mana) {
