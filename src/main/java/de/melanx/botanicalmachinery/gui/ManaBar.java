@@ -40,6 +40,7 @@ public class ManaBar {
     }
 
     public void renderHoveredToolTip(int mouseX, int mouseY, int mana) {
+        if (this.capacity <= 0) return;
         if (this.isMouseOver(mouseX, mouseY) && BMConfig.CLIENT.numericalMana) {
             this.parent.drawHoveringText(mana + " / " + this.capacity + " Mana", mouseX, mouseY);
         }
