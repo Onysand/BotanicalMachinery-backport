@@ -123,7 +123,8 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
         ItemStack block = new ItemStack(this.getWorld().getBlockState(this.pos).getBlock());
         String name = block.getDisplayName();
         int color = 0x4444FF;
-        HUDHandler.drawSimpleManaHUD(color, this.getCurrentMana(), this.getManaCap(), name, new ScaledResolution(mc));
+        if (this.getManaCap() > 0)
+            HUDHandler.drawSimpleManaHUD(color, this.getCurrentMana(), this.getManaCap(), name, new ScaledResolution(mc));
         
         mc.getTextureManager().bindTexture(HUDHandler.manaBar);
     }
