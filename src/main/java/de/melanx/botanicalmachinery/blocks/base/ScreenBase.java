@@ -26,24 +26,25 @@ public abstract class ScreenBase<X extends ContainerBase<?>> extends GuiContaine
     @Override
     public void initGui() {
         super.initGui();
-        this.relX = (this.getGuiLeft() - this.xSize) / 2;
-        this.relY = (this.getGuiTop() - this.ySize) / 2;
+        this.relX = this.guiLeft;
+        this.relY = this.guiTop;
     }
     
     @Override
     public void renderHoveredToolTip(int mouseX, int mouseY) {
         this.manaBar.guiTop = this.guiTop;
         this.manaBar.guiLeft = this.guiLeft;
-        this.drawDefaultBackground();
         super.renderHoveredToolTip(mouseX, mouseY);
         this.manaBar.renderHoveredToolTip(mouseX, mouseY, ((TileBase) this.container.tile).getCurrentMana());
     }
 
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+        GlStateManager.color(1f, 1f, 1f, 1f);
         String s = this.container.tile.getDisplayName().getFormattedText();
         this.fontRenderer.drawString(s, (this.xSize / 2 - this.fontRenderer.getStringWidth(s) / 2), 6, Color.DARK_GRAY.getRGB());
         this.fontRenderer.drawString(this.mc.player.inventory.getDisplayName().getFormattedText(), 6, (this.ySize - 96 + 2), Color.DARK_GRAY.getRGB());
+        this.renderHoveredToolTip(mouseX - this.guiLeft, mouseY - this.guiTop);
     }
 
     public void drawDefaultGuiBackgroundLayer(ResourceLocation screenLocation) {
@@ -62,14 +63,12 @@ public abstract class ScreenBase<X extends ContainerBase<?>> extends GuiContaine
             int x = this.relX + crossX;
             int y = this.relY + crossY;
 
-            GlStateManager.enableBlend();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
             this.mc.getTextureManager().bindTexture(LibResources.HUD);
             this.drawTexturedModalRect(x, y, 0, 0, 13, 13);
 
             GlStateManager.disableLighting();
-            GlStateManager.disableBlend();
         }
     }
 }
