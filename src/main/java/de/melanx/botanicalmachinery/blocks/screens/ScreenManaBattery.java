@@ -24,10 +24,10 @@ public class ScreenManaBattery extends ScreenBase<ContainerManaBattery> {
     @Override
     public void initGui() {
         super.initGui();
-        this.xB1 = this.relX + 51;
-        this.yB1 = this.relY + 49;
-        this.xB2 = this.relX + 105;
-        this.yB2 = this.relY + 49;
+        this.xB1 = this.guiLeft + 51;
+        this.yB1 = this.guiTop + 49;
+        this.xB2 = this.guiLeft + 105;
+        this.yB2 = this.guiTop + 49;
     }
 
     @Override

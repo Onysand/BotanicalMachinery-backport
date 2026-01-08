@@ -13,21 +13,14 @@ import java.awt.*;
 
 public abstract class ScreenBase<X extends ContainerBase<?>> extends GuiContainer {
     public final ManaBar manaBar;
-    public int relX;
-    public int relY;
+    public int guiLeft;
+    public int guiTop;
     public final ContainerBase<?> container;
     
     public ScreenBase(X container) {
         super(container);
         this.manaBar = new ManaBar(this, ((IManaMachineTile) container.tile).getManaCap());
         this.container = container;
-    }
-    
-    @Override
-    public void initGui() {
-        super.initGui();
-        this.relX = this.guiLeft;
-        this.relY = this.guiTop;
     }
     
     @Override
@@ -50,7 +43,7 @@ public abstract class ScreenBase<X extends ContainerBase<?>> extends GuiContaine
     public void drawDefaultGuiBackgroundLayer(ResourceLocation screenLocation) {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         this.mc.getTextureManager().bindTexture(screenLocation);
-        this.drawTexturedModalRect(this.relX, this.relY, 0, 0, this.xSize, this.ySize);
+        this.drawTexturedModalRect(this.guiLeft, this.guiTop, 0, 0, this.xSize, this.ySize);
         this.manaBar.draw(((TileBase) this.container.tile).getCurrentMana());
     }
 
@@ -60,8 +53,8 @@ public abstract class ScreenBase<X extends ContainerBase<?>> extends GuiContaine
         BlockPos tilePos = this.container.getPos();
         TileEntity tile = this.container.getWorld().getTileEntity(tilePos);
         if (tile instanceof TileBase && !((TileBase) tile).hasValidRecipe()) {
-            int x = this.relX + crossX;
-            int y = this.relY + crossY;
+            int x = this.guiLeft + crossX;
+            int y = this.guiTop + crossY;
 
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 

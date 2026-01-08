@@ -36,7 +36,6 @@ public class ScreenMechanicalApothecary extends ScreenBase<ContainerMechanicalAp
         this.drawDefaultGuiBackgroundLayer(LibResources.MECHANICAL_APOTHECARY_GUI, 81, 37);
 
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        this.mc.getTextureManager().bindTexture(LibResources.MECHANICAL_APOTHECARY_GUI);
 
         this.drawTexturedModalRect(this.relX, this.relY, 0, 0, this.xSize, this.ySize);
 

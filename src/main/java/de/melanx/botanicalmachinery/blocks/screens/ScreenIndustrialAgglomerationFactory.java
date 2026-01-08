@@ -19,9 +19,9 @@ public class ScreenIndustrialAgglomerationFactory extends ScreenBase<ContainerIn
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         this.drawDefaultGuiBackgroundLayer(LibResources.INDUSTRIAL_AGGLOMERATION_FACTORY_GUI, 81, 37);
-        RenderHelper.renderFadedItem(this, new ItemStack(ModItems.manaResource, 1, 0), this.relX + 61, this.relY + 83); // Mana Steel
-        RenderHelper.renderFadedItem(this, new ItemStack(ModItems.manaResource, 1, 2), this.relX + 80, this.relY + 83); // Mana Diamond
-        RenderHelper.renderFadedItem(this, new ItemStack(ModItems.manaResource, 1, 1), this.relX + 99, this.relY + 83); // Mana Pearl
+        RenderHelper.renderFadedItem(this, new ItemStack(ModItems.manaResource, 1, 0), this.guiLeft + 61, this.guiTop + 83); // Mana Steel
+        RenderHelper.renderFadedItem(this, new ItemStack(ModItems.manaResource, 1, 2), this.guiLeft + 80, this.guiTop + 83); // Mana Diamond
+        RenderHelper.renderFadedItem(this, new ItemStack(ModItems.manaResource, 1, 1), this.guiLeft + 99, this.guiTop + 83); // Mana Pearl
         TileIndustrialAgglomerationFactory tile = (TileIndustrialAgglomerationFactory) this.container.tile;
         if (tile.getProgress() > 0) {
             float pct = Math.min(tile.getProgress() / (float) tile.getMaxProgress(), 1.0F);
@@ -32,8 +32,8 @@ public class ScreenIndustrialAgglomerationFactory extends ScreenBase<ContainerIn
             this.mc.getTextureManager().bindTexture(LibResources.INDUSTRIAL_AGGLOMERATION_FACTORY_GUI);
             
             this.drawTexturedModalRect(
-                this.relX + 73,
-                this.relY + 76 - currentHeight,
+                this.guiLeft + 73,
+                this.guiTop + 76 - currentHeight,
                 176,
                 offset,
                 30,

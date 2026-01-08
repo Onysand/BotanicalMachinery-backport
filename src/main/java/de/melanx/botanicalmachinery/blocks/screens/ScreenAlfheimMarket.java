@@ -17,7 +17,7 @@ public class ScreenAlfheimMarket extends ScreenBase<ContainerAlfheimMarket> {
         if (tile.getProgress() > 0) {
             float pct = Math.min(tile.getProgress() / (float) tile.getMaxProgress(), 1.0F);
             this.mc.getTextureManager().bindTexture(LibResources.ALFHEIM_MARKET_GUI);
-            this.drawTexturedModalRect(this.relX + 77, this.relY + 35, 176, 0, Math.round(22 * pct), 16);
+            this.drawTexturedModalRect(this.guiLeft + 77, this.guiTop + 35, 176, 0, Math.round(22 * pct), 16);
         }
     }
 }

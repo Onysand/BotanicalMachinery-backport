@@ -20,12 +20,12 @@ public class ScreenMechanicalRunicAltar extends ScreenBase<ContainerMechanicalRu
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         this.drawDefaultGuiBackgroundLayer(LibResources.MECHANICAL_RUNIC_ALTAR_GUI, 91, 65);
-        RenderHelper.renderFadedItem(this, new ItemStack(ModBlocks.livingrock), this.relX + 90, this.relY + 43);
+        RenderHelper.renderFadedItem(this, new ItemStack(ModBlocks.livingrock), this.guiLeft + 90, this.guiTop + 43);
         TileMechanicalRunicAltar tile = (TileMechanicalRunicAltar) this.container.tile;
         if (tile.getProgress() > 0) {
             float pct = Math.min(tile.getProgress() / (float) tile.getMaxProgress(), 1.0F);
             this.mc.getTextureManager().bindTexture(LibResources.MECHANICAL_RUNIC_ALTAR_GUI);
-            this.drawTexturedModalRect(this.relX + 87, this.relY + 64, this.xSize, 0, Math.round(22 * pct), 16);
+            this.drawTexturedModalRect(this.guiLeft + 87, this.guiTop + 64, this.xSize, 0, Math.round(22 * pct), 16);
         }
     }
 }
