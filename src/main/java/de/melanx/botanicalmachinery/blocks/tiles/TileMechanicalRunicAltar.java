@@ -22,6 +22,7 @@ import vazkii.botania.common.lib.LibOreDict;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -64,7 +65,9 @@ public class TileMechanicalRunicAltar extends TileBase implements IWorkingTile {
     public boolean isValidStack(int slot, ItemStack stack) {
         if (slot == 0) return stack.getItem() == Item.getItemFromBlock(ModBlocks.livingrock);
         else if (Arrays.stream(this.inventory.getInputSlots()).anyMatch(x -> x == slot))
-            return BotaniaAPI.runeAltarRecipes.stream().anyMatch(r -> r.matches(this.inventory));
+            return BotaniaAPI.runeAltarRecipes.stream().anyMatch(r ->
+                r.getInputs().stream().anyMatch(input -> RecipeHelper.isInputMatch(input, stack))
+            );
         return true;
     }
 
@@ -72,30 +75,27 @@ public class TileMechanicalRunicAltar extends TileBase implements IWorkingTile {
         if (this.world != null && !this.world.isRemote) {
             List<ItemStack> stacks = new ArrayList<>(this.inventory.getStacks());
             RecipeHelper.removeFromList(stacks, IntStream.range(17, stacks.size() - 1).toArray(), new int[]{0});
-
+            List<ItemStack> inputStacks = Arrays.stream(this.inventory.getInputSlots())
+                .mapToObj(this.inventory::getStackInSlot)
+                .filter(stack -> !stack.isEmpty())
+                .collect(Collectors.toList());
+            
             for (RecipeRuneAltar recipe : BotaniaAPI.runeAltarRecipes) {
-                if (recipe.matches(this.inventory) && !this.inventory.getStackInSlot(0).isEmpty()) {
-                    List<ItemStack> stacksToTest = new ArrayList<>();
-                    stacksToTest.add(recipe.getOutput());
+                if (RecipeHelper.isInputsMatch(recipe.getInputs(), inputStacks, false) && !this.inventory.getStackInSlot(0).isEmpty()) {
+                    List<ItemStack> outputs = new ArrayList<>();
+                    outputs.add(recipe.getOutput());
                     for (Object input : recipe.getInputs()) {
-                        for (ItemStack stack : this.inventory.getStacks()) {
-                            if (RecipeHelper.isInputMatch(input, stack)) {
-                                if (RUNES.contains(stack)) {
-                                    ItemStack rune = stack.copy();
-                                    rune.setCount(1);
-                                    for (ItemStack testStack : stacksToTest) {
-                                        if (ItemHandlerHelper.canItemStacksStack(testStack, rune)) {
-                                            testStack.grow(1);
-                                            break;
-                                        }
-                                    }
-                                    stacksToTest.add(rune);
-                                    break;
-                                }
-                            }
-                        }
+                        inputStacks.stream()
+                            .filter(stack -> RecipeHelper.isInputMatch(input, stack) && RUNES.contains(stack))
+                            .findFirst()
+                            .ifPresent(stack -> {
+                                ItemStack rune = stack.copy();
+                                rune.setCount(1);
+                                outputs.add(rune);
+                            });
                     }
-                    if (this.canInsertAll(stacksToTest)) {
+                    
+                    if (this.canInsertAll(outputs)) {
                         this.recipe = recipe;
                         this.slotsUsed.clear();
                         for (Object input : recipe.getInputs()) {
@@ -109,6 +109,7 @@ public class TileMechanicalRunicAltar extends TileBase implements IWorkingTile {
                 }
             }
         }
+        
         this.slotsUsed.clear();
         this.recipe = null;
     }

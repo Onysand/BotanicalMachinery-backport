@@ -35,34 +35,30 @@ public class RecipeHelper {
 		return Arrays.stream(stackIds).anyMatch(id -> id == targetId);
 	}
 	
-	public static Optional<List<ItemStack>> isInputsMatch(List<Object> inputs, List<ItemStack> stacks) {
+	public static boolean isInputsMatch(List<Object> inputs, List<ItemStack> stacks, boolean shrink) {
 		List<Object> inputsMissing = new ArrayList<>(inputs);
-		List<ItemStack> stacksToRemove = new ArrayList<>();
+		Map<ItemStack, Integer> toShrink = new HashMap<>();
 		
-		for(ItemStack stack : stacks) {
-			if(stack.isEmpty()) {
-				continue;
-			}
-			if(inputsMissing.isEmpty())
-				break;
+		for (ItemStack stack : stacks) {
+			if (stack.isEmpty()) continue;
+			if (inputsMissing.isEmpty()) break;
 			
-			int stackIndex = -1;
-			
-			for (int i = 0; i < inputsMissing.size(); i++) {
-				Object input = inputsMissing.get(i);
-				if (isInputMatch(input, stack)) {
-					if(!stacksToRemove.contains(stack))
-						stacksToRemove.add(stack);
-					stackIndex = i;
-					break;
+			Iterator<Object> inputIterator = inputsMissing.iterator();
+			while (inputIterator.hasNext()) {
+				Object input = inputIterator.next();
+				
+				int alreadyPlanned = toShrink.getOrDefault(stack, 0);
+				if (stack.getCount() > alreadyPlanned && RecipeHelper.isInputMatch(input, stack)) {
+					toShrink.put(stack, alreadyPlanned + 1);
+					inputIterator.remove();
 				}
 			}
-			
-			if(stackIndex != -1)
-				inputsMissing.remove(stackIndex);
 		}
 		
-		return inputsMissing.isEmpty() ? Optional.of(stacksToRemove) : Optional.empty();
+		if (shrink && inputsMissing.isEmpty())
+			toShrink.forEach(ItemStack::shrink);
+		
+		return inputsMissing.isEmpty();
 	}
 
     /**

@@ -123,12 +123,10 @@ public class TileAlfheimMarket extends TileBase implements IWorkingTile {
                     this.recieveMana(-manaTransfer);
                     
                     if (this.progress >= RECIPE_COST) {
-                        List<ItemStack> inputs = new ArrayList<>();
-                        for (int i = 0; i < 4; i++) inputs.add(inventory.getStackInSlot(i));
-                        Optional<List<ItemStack>> toShrink = RecipeHelper.isInputsMatch(this.recipe.getInputs(), inputs);
-                        if (toShrink.isPresent()) {
+                        List<ItemStack> stacks = new ArrayList<>();
+                        for (int i = 0; i < 4; i++) stacks.add(inventory.getStackInSlot(i));
+                        if (RecipeHelper.isInputsMatch(this.recipe.getInputs(), stacks, true)) {
                             this.inventory.getUnrestricted().insertItem(4, output, false);
-                            toShrink.get().forEach(stack -> stack.shrink(1));
                         }
                         
                         this.update = true;
