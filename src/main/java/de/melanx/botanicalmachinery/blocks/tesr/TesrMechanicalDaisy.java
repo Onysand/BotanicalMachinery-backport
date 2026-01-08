@@ -23,7 +23,7 @@ public class TesrMechanicalDaisy extends TileEntitySpecialRenderer<TileMechanica
         GlStateManager.pushMatrix();
         GlStateManager.translate(x, y, z);
         GlStateManager.scale(SCALE, SCALE, SCALE);
-        GlStateManager.translate(0, 0, 0.5 / SCALE);
+        GlStateManager.translate(0, 0, 0.3 / SCALE);
         GlStateManager.translate(0, 0.125f / SCALE, 0);
         this.renderState(tile.getState(0), 0 / SCALE, 0 / SCALE);
         this.renderState(tile.getState(1), 0.34375f / SCALE, 0 / SCALE);

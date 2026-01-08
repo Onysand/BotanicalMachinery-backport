@@ -57,17 +57,16 @@ public class TesrMechanicalApothecary extends HorizontalRotatedTesr<TileMechanic
             GlStateManager.translate(4 / 16d, (10 + (fluidAmount * 3.8)) / 16, 4 / 16d);
             GlStateManager.rotate(90, 1, 0, 0);
             GlStateManager.scale(1 / 16f, 1 / 16f, 1 / 16f);
-
-            FluidStack fluidStack = tile.getFluidInventory().getFluid();
-            Minecraft.getMinecraft().getTextureManager().bindTexture(fluidStack.getFluid().getStill());
-            TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
-            TextureAtlasSprite sprite = textureMap.getAtlasSprite(fluidStack.getFluid().getStill().toString());
+            
             Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+            FluidStack fluidStack = tile.getFluidInventory().getFluid();
+            TextureAtlasSprite sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(fluidStack.getFluid().getStill().toString());
 
             int fluidColor = FluidRegistry.WATER.getColor(tile.getWorld(), tile.getPos());
 
             RenderHelper.renderIconColored(0, 0, sprite, 8, 8, 1.0F, fluidColor);
-
+            
+            GlStateManager.color(1, 1, 1, 1);
             GlStateManager.popMatrix();
         }
 

@@ -1,6 +1,5 @@
 package de.melanx.botanicalmachinery.blocks.screens;
 
-import com.google.common.collect.ImmutableList;
 import de.melanx.botanicalmachinery.blocks.base.ScreenBase;
 import de.melanx.botanicalmachinery.blocks.containers.ContainerMechanicalApothecary;
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalApothecary;
@@ -10,9 +9,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.oredict.OreDictionary;
 
 import java.awt.*;
 
@@ -20,7 +20,7 @@ public class ScreenMechanicalApothecary extends ScreenBase<ContainerMechanicalAp
     private final int relX;
     private final int relY;
     private final TileMechanicalApothecary tile;
-    private final static ResourceLocation water = new ResourceLocation("block/water_still");
+    private final static ResourceLocation water = FluidRegistry.WATER.getStill();
 
     public ScreenMechanicalApothecary(ContainerMechanicalApothecary screenContainer) {
         super(screenContainer);
@@ -41,7 +41,7 @@ public class ScreenMechanicalApothecary extends ScreenBase<ContainerMechanicalAp
         this.drawTexturedModalRect(this.relX, this.relY, 0, 0, this.xSize, this.ySize);
 
         if (this.tile.getInventory().getStackInSlot(0).isEmpty())
-            RenderHelper.renderFadedItem(this, ImmutableList.copyOf(OreDictionary.getOres("seed")), this.relX + 90, this.relY + 43);
+            RenderHelper.renderFadedItem(this, new ItemStack(Items.WHEAT_SEEDS), this.relX + 90, this.relY + 43);
 
         if (this.tile.getProgress() > 0) {
             float pctProgress = Math.min(this.tile.getProgress() / (float) TileMechanicalApothecary.getRecipeDuration(), 1.0F);
@@ -57,10 +57,8 @@ public class ScreenMechanicalApothecary extends ScreenBase<ContainerMechanicalAp
         this.fontRenderer.drawString(this.mc.player.inventory.getDisplayName().getFormattedText(), 8, (this.ySize - 96 + 2), Color.DARK_GRAY.getRGB());
 
         float pctFluid = Math.min((float) this.tile.getFluidInventory().getFluidAmount() / TileMechanicalApothecary.FLUID_CAPACITY, 1.0F);
-        this.mc.getTextureManager().bindTexture(water);
-        TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
-        TextureAtlasSprite sprite = textureMap.getAtlasSprite(water.toString());
-        this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+        Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+        TextureAtlasSprite sprite = Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(water.toString());
         int fluidColor = FluidRegistry.WATER.getColor();
         float fluidColorA = ((fluidColor >> 24) & 0xFF) / 255f;
         float fluidColorR = ((fluidColor >> 16) & 0xFF) / 255f;
