@@ -1,9 +1,11 @@
 package de.melanx.botanicalmachinery.helper;
 
 import com.google.common.collect.Lists;
+import de.melanx.botanicalmachinery.BotanicalMachinery;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.*;
@@ -31,6 +33,36 @@ public class RecipeHelper {
 		}
 		
 		return false;
+	}
+	
+	public static Optional<List<ItemStack>> isInputsMatch(List<Object> inputs, List<ItemStack> stacks) {
+		List<Object> inputsMissing = new ArrayList<>(inputs);
+		List<ItemStack> stacksToRemove = new ArrayList<>();
+		
+		for(ItemStack stack : stacks) {
+			if(stack.isEmpty()) {
+				continue;
+			}
+			if(inputsMissing.isEmpty())
+				break;
+			
+			int stackIndex = -1;
+			
+			for (int i = 0; i < inputsMissing.size(); i++) {
+				Object input = inputsMissing.get(i);
+				if (isInputMatch(input, stack)) {
+					if(!stacksToRemove.contains(stack))
+						stacksToRemove.add(stack);
+					stackIndex = i;
+					break;
+				}
+			}
+			
+			if(stackIndex != -1)
+				inputsMissing.remove(stackIndex);
+		}
+		
+		return inputsMissing.isEmpty() ? Optional.of(stacksToRemove) : Optional.empty();
 	}
 
     /**

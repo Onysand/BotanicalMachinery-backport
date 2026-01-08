@@ -1,5 +1,6 @@
 package de.melanx.botanicalmachinery.blocks.tiles;
 
+import de.melanx.botanicalmachinery.BotanicalMachinery;
 import de.melanx.botanicalmachinery.blocks.base.IWorkingTile;
 import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.BMConfig;
@@ -18,6 +19,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 public class TileAlfheimMarket extends TileBase implements IWorkingTile {
@@ -59,7 +61,10 @@ public class TileAlfheimMarket extends TileBase implements IWorkingTile {
         if (slot >= this.inventory.getInputSlots().length) return false;
         
         for (RecipeElvenTrade r : BotaniaAPI.elvenTradeRecipes) {
-            return r.getInputs().stream().anyMatch(input -> RecipeHelper.isInputMatch(input, stack));
+            boolean match = r.getInputs().stream().anyMatch(input -> RecipeHelper.isInputMatch(input, stack));
+            if (match) {
+                return true;
+            }
         }
         
         return Arrays.stream(this.inventory.getInputSlots()).noneMatch(x -> x == slot);
@@ -77,7 +82,7 @@ public class TileAlfheimMarket extends TileBase implements IWorkingTile {
         for (RecipeElvenTrade r : BotaniaAPI.elvenTradeRecipes) {
             if (r.matches(inputs, false)) {
                 recipe = r;
-                currentInput = inputs.get(0).copy(); // Упрощенно
+                currentInput = inputs.get(0).copy();
                 currentOutput = r.getOutputs().get(0).copy();
                 return;
             }
@@ -119,8 +124,13 @@ public class TileAlfheimMarket extends TileBase implements IWorkingTile {
                     this.recieveMana(-manaTransfer);
                     
                     if (this.progress >= RECIPE_COST) {
-                        this.inventory.getUnrestricted().insertItem(4, output, false);
-                        consumeIngredients();
+                        List<ItemStack> inputs = new ArrayList<>();
+                        for (int i = 0; i < 4; i++) inputs.add(inventory.getStackInSlot(i));
+                        Optional<List<ItemStack>> toShrink = RecipeHelper.isInputsMatch(this.recipe.getInputs(), inputs);
+                        if (toShrink.isPresent()) {
+                            this.inventory.getUnrestricted().insertItem(4, output, false);
+                            toShrink.get().forEach(stack -> stack.shrink(1));
+                        }
                         
                         this.update = true;
                         done = true;
@@ -146,16 +156,6 @@ public class TileAlfheimMarket extends TileBase implements IWorkingTile {
                     }
                 }
             }
-        }
-    }
-    
-    private void consumeIngredients() {
-        if (this.recipe == null) return;
-        
-        List<ItemStack> stacks = new ArrayList<>();
-        for (int i = 0; i < 4; i++) stacks.add(inventory.getStackInSlot(i));
-        if (this.recipe.matches(stacks, true)) {
-            for (int i = 0; i < 4; i++) inventory.setStackInSlot(i, stacks.get(i));
         }
     }
 
