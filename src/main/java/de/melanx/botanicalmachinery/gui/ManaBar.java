@@ -25,6 +25,7 @@ public class ManaBar {
     }
 
     public void draw(float mana) {
+        if (capacity <= 0) return;
         this.parent.mc.getTextureManager().bindTexture(LibResources.MANA_BAR);
         int relX = this.guiLeft + this.x;
         int relY = this.guiTop + this.y;
