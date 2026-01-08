@@ -13,8 +13,6 @@ import java.awt.*;
 
 public abstract class ScreenBase<X extends ContainerBase<?>> extends GuiContainer {
     public final ManaBar manaBar;
-    public int guiLeft;
-    public int guiTop;
     public final ContainerBase<?> container;
     
     public ScreenBase(X container) {
