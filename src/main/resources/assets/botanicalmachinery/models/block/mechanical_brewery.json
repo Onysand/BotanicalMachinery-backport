@@ -3,8 +3,8 @@
   "ambientocclusion": false,
   "textures": {
     "frame": "botania:blocks/storage2",
-    "cauldron": "minecraft:block/cauldron_side",
-    "bottom": "minecraft:block/cauldron_inner",
+    "cauldron": "minecraft:blocks/cauldron_side",
+    "bottom": "minecraft:blocks/cauldron_inner",
     "stick": "botania:blocks/livingwood0",
     "particle": "#frame"
   },

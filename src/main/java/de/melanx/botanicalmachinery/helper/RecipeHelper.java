@@ -18,19 +18,21 @@ public class RecipeHelper {
 			return ItemStack.areItemsEqual(stack, recipeStack);
 		}
 		
-		if (input instanceof String) {
-			String targetOre = (String) input;
-			int targetId = OreDictionary.getOreID(targetOre);
-			
-			int[] stackIds = OreDictionary.getOreIDs(stack);
-			return Arrays.stream(stackIds).anyMatch(id -> id == targetId);
-		}
+		if (input instanceof String)
+			return isOreDictMatch(input.toString(), stack);
 		
 		if (input instanceof List) {
 			return ((List<?>) input).stream().anyMatch(id -> isInputMatch(id, stack));
 		}
 		
 		return false;
+	}
+	
+	public static boolean isOreDictMatch(String input, ItemStack stack) {
+		int targetId = OreDictionary.getOreID(input);
+		
+		int[] stackIds = OreDictionary.getOreIDs(stack);
+		return Arrays.stream(stackIds).anyMatch(id -> id == targetId);
 	}
 	
 	public static Optional<List<ItemStack>> isInputsMatch(List<Object> inputs, List<ItemStack> stacks) {

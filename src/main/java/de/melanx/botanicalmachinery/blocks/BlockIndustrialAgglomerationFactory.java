@@ -14,8 +14,6 @@ import javax.annotation.Nullable;
 
 public class BlockIndustrialAgglomerationFactory extends BlockBase {
     
-    public static final AxisAlignedBB SHAPE = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.33D, 1.0D);
-
     public BlockIndustrialAgglomerationFactory() {
         super(false);
     }

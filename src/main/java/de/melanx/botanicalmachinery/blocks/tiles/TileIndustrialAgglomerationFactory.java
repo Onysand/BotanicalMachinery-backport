@@ -5,6 +5,7 @@ import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
+import de.melanx.botanicalmachinery.helper.RecipeHelper;
 import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -47,11 +48,11 @@ public class TileIndustrialAgglomerationFactory extends TileBase implements IWor
         
         switch (slot) {
             case 0: // ManaSteel Ingot
-                return OreDictionary.getOres(LibOreDict.MANA_STEEL).contains(stack);
+                return RecipeHelper.isOreDictMatch(LibOreDict.MANA_STEEL, stack);
             case 1: // Mana Diamond
-                return OreDictionary.getOres(LibOreDict.MANA_DIAMOND).contains(stack);
+                return RecipeHelper.isOreDictMatch(LibOreDict.MANA_DIAMOND, stack);
             case 2: // Mana Pearl
-                return OreDictionary.getOres(LibOreDict.MANA_PEARL).contains(stack);
+                return RecipeHelper.isOreDictMatch(LibOreDict.MANA_PEARL, stack);
             default:
                 return false;
         }

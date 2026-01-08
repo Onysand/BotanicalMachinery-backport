@@ -15,8 +15,6 @@ import javax.annotation.Nullable;
 
 public class BlockMechanicalBrewery extends BlockBase {
     
-    public static final AxisAlignedBB SHAPE = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.5D, 1.0D);
-
     public BlockMechanicalBrewery() {
         super(false);
     }
@@ -30,11 +28,6 @@ public class BlockMechanicalBrewery extends BlockBase {
     @Override
     public int getGuiId() {
         return GuiHandler.MECHANICAL_BREWERY_ID;
-    }
-    
-    @Override
-    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess access, BlockPos pos) {
-        return SHAPE;
     }
     
     @SuppressWarnings("deprecation")

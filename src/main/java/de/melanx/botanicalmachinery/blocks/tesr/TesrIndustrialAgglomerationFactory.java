@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
 import vazkii.botania.client.core.handler.ClientTickHandler;
 import vazkii.botania.client.core.handler.MiscellaneousIcons;
@@ -23,7 +24,9 @@ public class TesrIndustrialAgglomerationFactory extends HorizontalRotatedTesr<Ti
     protected void doRender(TileIndustrialAgglomerationFactory tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
         if (!BMConfig.CLIENT.rendering.all || !BMConfig.CLIENT.rendering.agglomerationFactory)
             return;
-
+        
+        Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+        
         double progressLeft = 1 - (tile.getProgress() / (double) tile.getMaxProgress());
 
         this.renderStack(tile.getInventory().getStackInSlot(0), partialTicks, progressLeft, 0);
@@ -53,7 +56,6 @@ public class TesrIndustrialAgglomerationFactory extends HorizontalRotatedTesr<Ti
             GlStateManager.rotate(90, 1, 0, 0);
             GlStateManager.translate(0, 0, -0.18850000202655792);
             float renderAlpha = (float) ((Math.sin((ClientTickHandler.ticksInGame + partialTicks) / 8) + 1) / 5 + 0.6) * alphaMod;
-            GlStateManager.disableAlpha();
             GlStateManager.color(1.0F, 1.0F, 1.0F, renderAlpha);
             
             IconHelper.renderIconIn3D(Tessellator.getInstance(),
@@ -63,7 +65,6 @@ public class TesrIndustrialAgglomerationFactory extends HorizontalRotatedTesr<Ti
                 MiscellaneousIcons.INSTANCE.terraPlateOverlay.getMaxV(),
                 1, 1, 1.0F/16.0F);
             
-            GlStateManager.enableAlpha();
             GlStateManager.popMatrix();
         }
     }

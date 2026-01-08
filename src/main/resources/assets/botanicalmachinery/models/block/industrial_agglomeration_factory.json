@@ -4,7 +4,7 @@
   "textures": {
     "frame": "botania:blocks/storage2",
     "livingrock": "botania:blocks/livingrock0",
-    "lapis": "minecraft:block/lapis_block",
+    "lapis": "minecraft:blocks/lapis_block",
     "terra_plate_top": "botania:blocks/terra_plate_1",
     "terra_plate_side": "botania:blocks/terra_plate_2",
     "particle": "#frame"

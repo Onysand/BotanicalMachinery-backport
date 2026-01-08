@@ -14,8 +14,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class BlockMechanicalManaPool extends BlockBase {
-    
-    public static final AxisAlignedBB SHAPE = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.375D, 1.0D);
 
     public BlockMechanicalManaPool() {
         super(false);
@@ -30,12 +28,6 @@ public class BlockMechanicalManaPool extends BlockBase {
     @Override
     public int getGuiId() {
         return GuiHandler.MECHANICAL_MANA_POOL_ID;
-    }
-    
-    @SuppressWarnings("deprecation")
-    @Override
-    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess access, BlockPos pos) {
-        return SHAPE;
     }
     
     @SuppressWarnings("deprecation")

@@ -61,6 +61,12 @@ sourceSets.main.resources {
     srcDir 'src/main/resources'
 }
 
+sourceSets {
+    main {
+        output.setResourcesDir("build/classes/java/main")
+    }
+}
+
 processResources {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
@@ -144,13 +150,12 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
-    // Добавляем { transitive = false } к каждому модулю
 
-    implementation(fg.deobf("curse.maven:botania-225643:3330934")) { transitive = false }
-    implementation(fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")) { transitive = false }
-    implementation(fg.deobf("curse.maven:baubles-227083:2518667")) { transitive = false }
+    implementation(fg.deobf("curse.maven:botania-225643:3330934"))
+    implementation(fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}"))
+    implementation(fg.deobf("curse.maven:baubles-227083:2518667"))
 
-    runtimeOnly(fg.deobf("mezz.jei:jei_${mc_version}:${jei_version}")) { transitive = false }
+//    runtimeOnly(fg.deobf("mezz.jei:jei_${mc_version}:${jei_version}"))
     compileOnly fg.deobf("mezz.jei:jei_${mc_version}:${jei_version}:api")
 }
 

@@ -25,8 +25,20 @@ public class ScreenIndustrialAgglomerationFactory extends ScreenBase<ContainerIn
         TileIndustrialAgglomerationFactory tile = (TileIndustrialAgglomerationFactory) this.container.tile;
         if (tile.getProgress() > 0) {
             float pct = Math.min(tile.getProgress() / (float) tile.getMaxProgress(), 1.0F);
+            int fullHeight = 25;
+            int currentHeight = Math.round(fullHeight * pct);
+            int offset = fullHeight - currentHeight;
+            
             this.mc.getTextureManager().bindTexture(LibResources.INDUSTRIAL_AGGLOMERATION_FACTORY_GUI);
-            this.drawTexturedModalRect(this.relX + 73, this.relY + 76,  176, 25, 30, Math.round(-(25 * pct)));
+            
+            this.drawTexturedModalRect(
+                this.relX + 73,
+                this.relY + 76 - currentHeight,
+                176,
+                offset,
+                30,
+                currentHeight
+            );
         }
     }
 

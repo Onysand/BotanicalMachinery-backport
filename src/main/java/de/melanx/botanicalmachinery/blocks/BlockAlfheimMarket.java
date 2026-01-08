@@ -15,16 +15,8 @@ import javax.annotation.Nullable;
 @SuppressWarnings("NullableProblems")
 public class BlockAlfheimMarket extends BlockBase {
     
-    public static final AxisAlignedBB FRAME_SHAPE = new AxisAlignedBB(0, 0, 0, 1, 1, 1);
-    
     public BlockAlfheimMarket() {
         super(false);
-    }
-    
-    @SuppressWarnings("deprecation")
-    @Override
-    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess blockAccess, BlockPos pos) {
-        return FRAME_SHAPE;
     }
     
     @Nullable

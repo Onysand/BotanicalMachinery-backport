@@ -35,9 +35,13 @@ public class TesrAlfheimMarket extends HorizontalRotatedTesr<TileAlfheimMarket> 
         GlStateManager.scale(1 / 16f, 1 / 16f, 1 / 16f);
         GlStateManager.translate(3.2, 2, 3.6);
         GlStateManager.scale(3.6f, 3.6f, 3.6f);
+        
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR_NORMAL);
         Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlock(ModBlocks.pylon.getDefaultState(), tile.getPos(), tile.getWorld(), buffer);
         GlStateManager.translate(1 + (2 / 3.6), 0, 0);
         Minecraft.getMinecraft().getBlockRendererDispatcher().renderBlock(ModBlocks.pylon.getDefaultState(), tile.getPos(), tile.getWorld(), buffer);
+        tessellator.draw();
+        
         GlStateManager.popMatrix();
         
         if (tile.getCurrentMana() > 0) {

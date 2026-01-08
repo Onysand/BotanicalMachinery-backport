@@ -15,8 +15,6 @@ import javax.annotation.Nullable;
 
 public class BlockMechanicalRunicAltar extends BlockBase {
     
-    public static final AxisAlignedBB SHAPE = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.5625D, 1.0D);
-
     public BlockMechanicalRunicAltar() {
         super(false);
     }
@@ -31,12 +29,7 @@ public class BlockMechanicalRunicAltar extends BlockBase {
     public int getGuiId() {
         return GuiHandler.MECHANICAL_RUNIC_ALTAR_ID;
     }
-    
-    @Override
-    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess access, BlockPos pos) {
-        return SHAPE;
-    }
-    
+
     @SuppressWarnings("deprecation")
     @Override
     public int getComparatorInputOverride(@Nonnull IBlockState blockState, @Nonnull World worldIn, @Nonnull BlockPos pos) {

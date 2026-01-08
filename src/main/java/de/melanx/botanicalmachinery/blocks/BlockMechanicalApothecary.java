@@ -1,6 +1,7 @@
 package de.melanx.botanicalmachinery.blocks;
 
 import de.melanx.botanicalmachinery.BotanicalMachinery;
+import de.melanx.botanicalmachinery.blocks.base.BlockBase;
 import de.melanx.botanicalmachinery.blocks.tiles.TileMechanicalApothecary;
 import de.melanx.botanicalmachinery.gui.GuiHandler;
 import net.minecraft.block.Block;
@@ -27,26 +28,23 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class BlockMechanicalApothecary extends Block implements ITileEntityProvider {
+public class BlockMechanicalApothecary extends BlockBase {
     
-    private static final AxisAlignedBB AABB = new AxisAlignedBB(0.0D, 0.0D, 0.0D, 1.0D, 0.875D, 1.0D);
-    public static final PropertyDirection FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
-
     public BlockMechanicalApothecary() {
-        super(Material.ROCK);
+        super(false);
         setHardness(2);
         setResistance(10);
     }
-    
-    @Override
-    public boolean hasTileEntity(IBlockState state) {
-        return true;
-    }
-    
-    @Nullable
+	
+	@Nullable
     @Override
     public TileEntity createNewTileEntity(World world, int meta) {
         return new TileMechanicalApothecary();
+    }
+    
+    @Override
+    public int getGuiId() {
+        return GuiHandler.MECHANICAL_APOTHECARY_ID;
     }
     
     @Override
@@ -71,45 +69,10 @@ public class BlockMechanicalApothecary extends Block implements ITileEntityProvi
         }
         return true;
     }
-    
-    @Override
-    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess access, BlockPos pos) {
-        return AABB;
-    }
-    
-    @Override
-    protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, FACING);
-    }
-    
-    @Override
-    public int getMetaFromState(IBlockState state) {
-        return state.getValue(FACING).getHorizontalIndex();
-    }
-    
-    @Override
-    public IBlockState getStateFromMeta(int meta) {
-        return this.getDefaultState().withProperty(FACING, EnumFacing.getHorizontal(meta));
-    }
-    
-    @Override
-    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float x, float y, float z, int meta, EntityLivingBase placer, EnumHand hand) {
-        return this.getDefaultState().withProperty(BlockHorizontal.FACING, placer.getHorizontalFacing().getOpposite());
-    }
-    
-    @Override
+	
+	@Override
     public int getLightOpacity(IBlockState state, IBlockAccess access, BlockPos pos) {
         return 0;
-    }
-    
-    @Override
-    public boolean isOpaqueCube(IBlockState state) {
-        return true;
-    }
-    
-    @Override
-    public boolean isFullCube(IBlockState state) {
-        return true;
     }
     
     @SuppressWarnings("deprecation")

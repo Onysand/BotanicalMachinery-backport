@@ -17,6 +17,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import vazkii.botania.api.wand.IWandHUD;
 
@@ -82,6 +83,11 @@ public abstract class BlockBase extends Block implements ITileEntityProvider, IW
     @Override
     public boolean isFullCube(IBlockState state) {
         return fullCube;
+    }
+    
+    @Override
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+        return FRAME_SHAPE;
     }
     
     @Override

@@ -156,6 +156,8 @@ public class TileMechanicalDaisy extends TileBase {
         }
     }
     
+    
+    
     public boolean isFluidValid(FluidStack fluidStack) {
         if (fluidStack == null || fluidStack.getFluid() == null) return false;
         
