@@ -54,11 +54,6 @@ public class TileMechanicalDaisy extends TileBase {
     }
     
     @Override
-    public boolean hasCustomCapability(Capability<?> cap, @Nullable EnumFacing facing) {
-        return true;
-    }
-    
-    @Override
     public <X> X customCapabilityHandle(@Nonnull Capability<X> cap, EnumFacing facing) {
         if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
             //noinspection unchecked

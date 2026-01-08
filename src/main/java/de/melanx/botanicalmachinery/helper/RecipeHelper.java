@@ -1,11 +1,9 @@
 package de.melanx.botanicalmachinery.helper;
 
 import com.google.common.collect.Lists;
-import de.melanx.botanicalmachinery.BotanicalMachinery;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
 import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.*;

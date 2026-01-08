@@ -7,7 +7,6 @@ import de.melanx.botanicalmachinery.util.inventory.BaseItemStackHandler;
 import de.melanx.botanicalmachinery.util.inventory.ItemStackHandlerWrapper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
@@ -23,7 +22,6 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
-import org.lwjgl.opengl.GL11;
 import vazkii.botania.api.internal.VanillaPacketDispatcher;
 import vazkii.botania.api.mana.IKeyLocked;
 import vazkii.botania.api.mana.IManaPool;
@@ -77,6 +75,7 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
 
     public abstract boolean isValidStack(int slot, ItemStack stack);
     
+    @SuppressWarnings("NullableProblems")
     @Override
     public boolean hasCapability(Capability<?> cap, @Nullable EnumFacing facing) {
         if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY
@@ -86,10 +85,6 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
     
     public <X> X customCapabilityHandle(@Nonnull Capability<X> cap, EnumFacing facing) {
         return null;
-    }
-    
-    public boolean hasCustomCapability(Capability<?> cap, @Nullable EnumFacing facing) {
-        return false;
     }
     
     @Nonnull
