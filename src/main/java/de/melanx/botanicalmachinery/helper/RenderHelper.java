@@ -40,14 +40,12 @@ public class RenderHelper {
     public static void renderFadedItem(GuiContainer screen, ItemStack stack, int x, int y) {
         screen.mc.getRenderItem().renderItemIntoGUI(stack, x, y);
         
-        GlStateManager.enableBlend();
         GlStateManager.disableDepth();
         screen.mc.getTextureManager().bindTexture(LibResources.HUD);
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         
         vazkii.botania.client.core.helper.RenderHelper.drawTexturedModalRect(x, y, 1.0F, 16, 0, 16, 16);
         GlStateManager.enableDepth();
-        GlStateManager.disableBlend();
     }
 
     /**

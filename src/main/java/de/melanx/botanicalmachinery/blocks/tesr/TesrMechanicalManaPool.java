@@ -43,8 +43,6 @@ public class TesrMechanicalManaPool extends HorizontalRotatedTesr<TileMechanical
             
             float renderAlpha = (float) ((Math.sin((double) (ClientTickHandler.ticksInGame + partialTicks) / 20.0D) + 1.0D) * 0.3D + 0.2D);
             
-            GlStateManager.enableBlend();
-            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             GlStateManager.disableLighting();
             GlStateManager.color(1.0F, 1.0F, 1.0F, renderAlpha);
             
@@ -59,7 +57,6 @@ public class TesrMechanicalManaPool extends HorizontalRotatedTesr<TileMechanical
             );
             
             GlStateManager.enableLighting();
-            GlStateManager.disableBlend();
             GlStateManager.popMatrix();
         }
 
@@ -71,7 +68,6 @@ public class TesrMechanicalManaPool extends HorizontalRotatedTesr<TileMechanical
             GlStateManager.rotate(90f, 1, 0 ,0);
             GlStateManager.scale(1 / 16f, 1 / 16f, 1 / 16f);
             
-            GlStateManager.enableBlend();
             TextureAtlasSprite sprite = MiscellaneousIcons.INSTANCE.manaWater;
             
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
@@ -85,7 +81,6 @@ public class TesrMechanicalManaPool extends HorizontalRotatedTesr<TileMechanical
                 0.0625F
             );
             
-            GlStateManager.disableBlend();
             GlStateManager.popMatrix();
         }
 

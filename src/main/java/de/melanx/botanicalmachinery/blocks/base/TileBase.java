@@ -130,13 +130,7 @@ public abstract class TileBase extends TileMod implements IManaPool, IManaMachin
         int color = 0x4444FF;
         HUDHandler.drawSimpleManaHUD(color, this.getCurrentMana(), this.getManaCap(), name, new ScaledResolution(mc));
         
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
         mc.getTextureManager().bindTexture(HUDHandler.manaBar);
-
-        GlStateManager.disableLighting();
-        GlStateManager.disableBlend();
     }
 
     @Override

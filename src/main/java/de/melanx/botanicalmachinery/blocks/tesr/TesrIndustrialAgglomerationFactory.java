@@ -53,8 +53,6 @@ public class TesrIndustrialAgglomerationFactory extends HorizontalRotatedTesr<Ti
             GlStateManager.rotate(90, 1, 0, 0);
             GlStateManager.translate(0, 0, -0.18850000202655792);
             float renderAlpha = (float) ((Math.sin((ClientTickHandler.ticksInGame + partialTicks) / 8) + 1) / 5 + 0.6) * alphaMod;
-            GlStateManager.enableBlend();
-            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
             GlStateManager.disableAlpha();
             GlStateManager.color(1.0F, 1.0F, 1.0F, renderAlpha);
             
@@ -65,6 +63,7 @@ public class TesrIndustrialAgglomerationFactory extends HorizontalRotatedTesr<Ti
                 MiscellaneousIcons.INSTANCE.terraPlateOverlay.getMaxV(),
                 1, 1, 1.0F/16.0F);
             
+            GlStateManager.enableAlpha();
             GlStateManager.popMatrix();
         }
     }

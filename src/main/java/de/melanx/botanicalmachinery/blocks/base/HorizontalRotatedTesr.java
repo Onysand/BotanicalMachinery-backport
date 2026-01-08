@@ -15,12 +15,13 @@ public abstract class HorizontalRotatedTesr<T extends TileEntity> extends TileEn
     @Override
     public void render(T tile, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
         GlStateManager.pushMatrix();
+        GlStateManager.translate(x, y, z);
         EnumFacing facing = tile.getWorld().getBlockState(tile.getPos()).getValue(BlockHorizontal.FACING);
         float f = facing.getHorizontalAngle() + 180;
         GlStateManager.translate(0.5D, 0.5D, 0.5D);
         GlStateManager.rotate(-f, 0.0F, 1.0F, 0.0F);
         GlStateManager.translate(-0.5D, -0.5D, -0.5D);
-        this.doRender(tile, x, y, z, partialTicks, destroyStage, alpha);
+        this.doRender(tile, 0, 0, 0, partialTicks, destroyStage, alpha);
         GlStateManager.popMatrix();
     }
     
