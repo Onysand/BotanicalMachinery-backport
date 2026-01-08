@@ -26,8 +26,8 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        this.drawDefaultBackground();
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        this.drawDefaultGuiBackgroundLayer(LibResources.MECHANICAL_DAISY_GUI, 81, 37);
+        
         this.mc.getTextureManager().bindTexture(LibResources.MECHANICAL_DAISY_GUI);
         int relX = (this.width - this.xSize) / 2;
         int relY = (this.height - this.ySize) / 2;
@@ -38,23 +38,16 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
 
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        GlStateManager.color(1, 1, 1, 1);
-        String s = this.container.tile.getDisplayName().getFormattedText();
-        this.fontRenderer.drawString(s, (this.xSize / 2 - this.fontRenderer.getStringWidth(s) / 2), 6, 4210752);
-        this.fontRenderer.drawString(this.mc.player.inventory.getDisplayName().getFormattedText(), 8, (this.ySize - 96 + 2), 4210752);
-        
+        super.drawGuiContainerForegroundLayer(mouseX, mouseY);
+
         GlStateManager.pushMatrix();
-        GlStateManager.enableBlend();
         GlStateManager.color(1, 1, 1, 1);
         this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
         TextureMap textureMap = Minecraft.getMinecraft().getTextureMapBlocks();
         TextureAtlasSprite sprite = textureMap.getAtlasSprite(PURE_DAISY_TEXTURE);
         this.drawTexturedModalRect(12, 16, sprite, 48, 48);
-        GlStateManager.disableBlend();
         GlStateManager.popMatrix();
         GlStateManager.color(1, 1, 1, 1);
-        
-        this.renderHoveredToolTip(mouseX - this.guiLeft, mouseY - this.guiTop);
     }
 
     @Override
@@ -80,9 +73,6 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
     
     private void drawFluidInSlots() {
         this.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-        
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         
         this.inventorySlots.inventorySlots.forEach(slot -> {
             if (!(slot instanceof ContainerMechanicalDaisy.ItemAndFluidSlot)) return;
@@ -115,6 +105,5 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
         });
         
         GlStateManager.color(1, 1, 1, 1);
-        GlStateManager.disableBlend();
     }
 }

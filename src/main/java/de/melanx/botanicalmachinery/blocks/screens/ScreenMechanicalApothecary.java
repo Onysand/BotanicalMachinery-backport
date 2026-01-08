@@ -33,7 +33,8 @@ public class ScreenMechanicalApothecary extends ScreenBase<ContainerMechanicalAp
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        this.drawDefaultBackground();
+        this.drawDefaultGuiBackgroundLayer(LibResources.MECHANICAL_APOTHECARY_GUI, 81, 37);
+
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         this.mc.getTextureManager().bindTexture(LibResources.MECHANICAL_APOTHECARY_GUI);
 
