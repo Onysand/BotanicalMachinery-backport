@@ -12,17 +12,12 @@ public class ScreenAlfheimMarket extends ScreenBase<ContainerAlfheimMarket> {
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        this.drawDefaultGuiBackgroundLayer(LibResources.ALFHEIM_MARKET_GUI, this.relX + 3, this.relY + 57);
+        this.drawDefaultGuiBackgroundLayer(LibResources.ALFHEIM_MARKET_GUI, 3, 57);
         TileAlfheimMarket tile = (TileAlfheimMarket) this.container.tile;
         if (tile.getProgress() > 0) {
             float pct = Math.min(tile.getProgress() / (float) tile.getMaxProgress(), 1.0F);
             this.mc.getTextureManager().bindTexture(LibResources.ALFHEIM_MARKET_GUI);
-            vazkii.botania.client.core.helper.RenderHelper.drawTexturedModalRect(this.relX + 77, this.relY + 35, 176, 0, Math.round(22 * pct), 100, 16);
+            this.drawTexturedModalRect(this.relX + 77, this.relY + 35, 176, 0, Math.round(22 * pct), 16);
         }
-    }
-    
-    @Override
-    public void renderHoveredToolTip(int mouseX, int mouseY) {
-        super.renderHoveredToolTip(mouseX, mouseY);
     }
 }

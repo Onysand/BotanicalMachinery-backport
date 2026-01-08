@@ -46,7 +46,7 @@ public class ScreenMechanicalApothecary extends ScreenBase<ContainerMechanicalAp
         if (this.tile.getProgress() > 0) {
             float pctProgress = Math.min(this.tile.getProgress() / (float) TileMechanicalApothecary.getRecipeDuration(), 1.0F);
             this.mc.getTextureManager().bindTexture(LibResources.MECHANICAL_APOTHECARY_GUI);
-            vazkii.botania.client.core.helper.RenderHelper.drawTexturedModalRect(this.relX + 87, this.relY + 64, 1F, this.xSize, 0, Math.round(22 * pctProgress), 16);
+            this.drawTexturedModalRect(this.relX + 87, this.relY + 64, this.xSize, 0, Math.round(22 * pctProgress), 16);
         }
     }
 
