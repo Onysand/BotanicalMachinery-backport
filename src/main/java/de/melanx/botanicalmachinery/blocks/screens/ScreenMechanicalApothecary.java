@@ -35,10 +35,6 @@ public class ScreenMechanicalApothecary extends ScreenBase<ContainerMechanicalAp
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         this.drawDefaultGuiBackgroundLayer(LibResources.MECHANICAL_APOTHECARY_GUI, 81, 37);
 
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-
-        this.drawTexturedModalRect(this.relX, this.relY, 0, 0, this.xSize, this.ySize);
-
         if (this.tile.getInventory().getStackInSlot(0).isEmpty())
             RenderHelper.renderFadedItem(this, new ItemStack(Items.WHEAT_SEEDS), this.relX + 90, this.relY + 43);
 

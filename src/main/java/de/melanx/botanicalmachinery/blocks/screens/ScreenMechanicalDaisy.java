@@ -25,12 +25,6 @@ public class ScreenMechanicalDaisy extends ScreenBase<ContainerMechanicalDaisy> 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         this.drawDefaultGuiBackgroundLayer(LibResources.MECHANICAL_DAISY_GUI, 81, 37);
-        
-        this.mc.getTextureManager().bindTexture(LibResources.MECHANICAL_DAISY_GUI);
-        int relX = (this.width - this.xSize) / 2;
-        int relY = (this.height - this.ySize) / 2;
-        this.drawTexturedModalRect(relX, relY, 0, 0, this.xSize, this.ySize);
-        
         this.drawFluidInSlots();
     }
 
