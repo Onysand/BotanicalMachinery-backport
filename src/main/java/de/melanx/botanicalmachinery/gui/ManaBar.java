@@ -18,10 +18,10 @@ public class ManaBar {
         this.parent = parent;
         this.capacity = capacity;
     }
-
+    
     public boolean isMouseOver(int mouseX, int mouseY) {
-        return this.guiLeft + this.x < mouseX && mouseX < this.guiLeft + this.x + this.width
-                && this.guiTop + this.y < mouseY && mouseY < this.guiTop + this.y + this.height;
+        return mouseX >= this.x && mouseX < this.x + this.width &&
+            mouseY >= this.y && mouseY < this.y + this.height;
     }
 
     public void draw(float mana) {

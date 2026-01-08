@@ -34,8 +34,8 @@ public abstract class ScreenBase<X extends ContainerBase<?>> extends GuiContaine
     public void renderHoveredToolTip(int mouseX, int mouseY) {
         this.manaBar.guiTop = this.guiTop;
         this.manaBar.guiLeft = this.guiLeft;
-        super.renderHoveredToolTip(mouseX, mouseY);
         this.manaBar.renderHoveredToolTip(mouseX, mouseY, ((TileBase) this.container.tile).getCurrentMana());
+        super.renderHoveredToolTip(mouseX, mouseY);
     }
 
     @Override
