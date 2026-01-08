@@ -2,6 +2,21 @@
   "variants": {
     "normal": {
       "model": "botanicalmachinery:mechanical_daisy"
+    },
+    "facing=north": {
+      "model": "botanicalmachinery:mechanical_daisy"
+    },
+    "facing=south": {
+      "model": "botanicalmachinery:mechanical_daisy",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "botanicalmachinery:mechanical_daisy",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "botanicalmachinery:mechanical_daisy",
+      "y": 90
     }
   }
 }

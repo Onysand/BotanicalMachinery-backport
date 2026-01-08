@@ -1,5 +1,6 @@
 package de.melanx.botanicalmachinery.blocks.tiles;
 
+import de.melanx.botanicalmachinery.blocks.base.TileBase;
 import de.melanx.botanicalmachinery.config.BMConfig;
 import de.melanx.botanicalmachinery.core.LibNames;
 import de.melanx.botanicalmachinery.core.TileTags;
@@ -39,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-public class TileMechanicalApothecary extends TileMod implements ITickable {
+public class TileMechanicalApothecary extends TileBase {
 
     public static final int WORKING_DURATION = 20;
     public static final int FLUID_CAPACITY = 8000;
@@ -55,19 +56,17 @@ public class TileMechanicalApothecary extends TileMod implements ITickable {
     private boolean initDone;
     private int progress;
     private boolean update;
-    private boolean sendPacket;
     private ItemStack currentOutput = ItemStack.EMPTY;
 
     public TileMechanicalApothecary() {
-        super();
+        super(0);
         this.inventory.setInputSlots(IntStream.range(1, 17).toArray());
         this.inventory.setOutputSlots(IntStream.range(17, 21).toArray());
     }
     
-    @Nullable
     @Override
-    public ITextComponent getDisplayName() {
-        return new TextComponentTranslation(LibNames.MECHANICAL_APOTHECARY);
+    protected String getName() {
+        return LibNames.MECHANICAL_APOTHECARY;
     }
     
     @Nonnull
@@ -110,10 +109,7 @@ public class TileMechanicalApothecary extends TileMod implements ITickable {
 
     @Override
     public void update() {
-        if (this.sendPacket) {
-            VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
-            this.sendPacket = false;
-        }
+        super.update();
         if (this.world != null && !this.world.isRemote) {
             if (!this.initDone) {
                 this.update = true;
@@ -199,10 +195,6 @@ public class TileMechanicalApothecary extends TileMod implements ITickable {
         }
     }
 
-    private void markDispatchable() {
-        this.sendPacket = true;
-    }
-
     public int getProgress() {
         return this.progress;
     }
@@ -229,17 +221,16 @@ public class TileMechanicalApothecary extends TileMod implements ITickable {
         this.currentOutput = new ItemStack(cmp.getCompoundTag(TileTags.CURRENT_OUTPUT));
     }
     
-    @Nonnull
     @Override
-    public <X> X getCapability(@Nonnull Capability<X> cap, @Nullable EnumFacing side) {
-        if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-            return (X) this.handler;
-        } else if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
-            return (X) this.fluidHandler;
+    public <X> X customCapabilityHandle(@Nonnull Capability<X> cap, EnumFacing facing) {
+        if (cap == CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY) {
+	        //noinspection unchecked
+	        return (X) this.fluidHandler;
         }
-        return super.getCapability(cap, side);
+        
+        return null;
     }
-
+    
     public ItemStack getCurrentOutput() {
         return this.currentOutput;
     }
